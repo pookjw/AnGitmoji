@@ -36,8 +36,8 @@ let package = Package(
         ),
         .library(
             name: "AnGitMojiCore",
-            targets: ["AnGitMojiCore"],
-            type: .dynamic
+            type: .dynamic,
+            targets: ["AnGitMojiCore"]
         )
     ],
     targets: [
