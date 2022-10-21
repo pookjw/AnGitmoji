@@ -10,8 +10,8 @@ import AppleProductTypes
 let package = Package(
     name: "AnGitMoji",
     platforms: [
-        .iOS("16.0"),
-        .macOS("13.0")
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
         .iOSApplication(
@@ -35,6 +35,11 @@ let package = Package(
             appCategory: .utilities
         ),
         .library(
+            name: "AnGitMojiObjC",
+            type: .dynamic,
+            targets: ["AnGitMojiObjC"]
+        ),
+        .library(
             name: "AnGitMojiCore",
             type: .dynamic,
             targets: ["AnGitMojiCore"]
@@ -43,27 +48,31 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "AnGitMoji",
+            dependencies: [
+                .byName(name: "AnGitMojiObjC"),
+                .byName(name: "AnGitMojiCore")
+            ],
             exclude: ["Resources"],
             resources: [
                 .process("Resources")
             ]
         ),
         .target(
+            name: "AnGitMojiObjC",
+            exclude: ["Resources"],
+            resources: [.process("Resources")],
+            publicHeadersPath: "PublicHeaders"
+        ),
+        .target(
             name: "AnGitMojiCore",
             exclude: ["Resources"],
-            resources: [
-                .process("Resources")
-            ]
+            resources: [.process("Resources")]
         ),
         .testTarget(
             name: "AnGitMojiCoreTests",
-            dependencies: [
-                "AnGitMojiCore"
-            ],
+            dependencies: [.byName(name: "AnGitMojiCore")],
             exclude: ["Resources"],
-            resources: [
-                .process("Resources")
-            ]
+            resources: [.process("Resources")]
         )
     ]
 )
