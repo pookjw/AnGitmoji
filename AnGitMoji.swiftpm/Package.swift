@@ -17,6 +17,8 @@ let package = Package(
         .iOSApplication(
             name: "AnGitMoji",
             targets: ["AnGitMoji"],
+            bundleIdentifier: "com.pookjw.angitmoji",
+            teamIdentifier: "P53D29U9LJ",
             bundleVersion: "1",
             appIcon: .placeholder(icon: .cat),
             accentColor: .presetColor(.purple),
@@ -34,21 +36,33 @@ let package = Package(
         ),
         .library(
             name: "AnGitMojiCore",
-            type: .dynamic,
-            targets: ["AnGitMojiCore"]
+            targets: ["AnGitMojiCore"],
+            type: .dynamic
         )
     ],
     targets: [
         .executableTarget(
-            name: "AnGitMoji"
+            name: "AnGitMoji",
+            exclude: ["Resources"],
+            resources: [
+                .process("Resources")
+            ]
         ),
         .target(
-            name: "AnGitMojiCore"
+            name: "AnGitMojiCore",
+            exclude: ["Resources"],
+            resources: [
+                .process("Resources")
+            ]
         ),
         .testTarget(
             name: "AnGitMojiCoreTests",
             dependencies: [
                 "AnGitMojiCore"
+            ],
+            exclude: ["Resources"],
+            resources: [
+                .process("Resources")
             ]
         )
     ]
