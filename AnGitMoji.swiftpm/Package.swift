@@ -10,8 +10,8 @@ import AppleProductTypes
 let package = Package(
     name: "AnGitMoji",
     platforms: [
-        .iOS(.v16),
-        .macOS(.v13)
+        .iOS("16.0"),
+        .macCatalyst("16.0")
     ],
     products: [
         .iOSApplication(
@@ -24,7 +24,8 @@ let package = Package(
             accentColor: .presetColor(.purple),
             supportedDeviceFamilies: [
                 .pad,
-                .phone
+                .phone,
+                .mac
             ],
             supportedInterfaceOrientations: [
                 .portrait,
@@ -36,12 +37,10 @@ let package = Package(
         ),
         .library(
             name: "AnGitMojiObjC",
-            type: .dynamic,
             targets: ["AnGitMojiObjC"]
         ),
         .library(
             name: "AnGitMojiCore",
-            type: .dynamic,
             targets: ["AnGitMojiCore"]
         )
     ],
