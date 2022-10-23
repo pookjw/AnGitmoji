@@ -19,6 +19,7 @@ let package = Package(
             targets: ["AnGitMoji"],
             bundleIdentifier: "com.pookjw.angitmoji",
             teamIdentifier: "P53D29U9LJ",
+            displayVersion: "1.0",
             bundleVersion: "1",
             appIcon: .placeholder(icon: .cat),
             accentColor: .presetColor(.purple),
@@ -34,44 +35,49 @@ let package = Package(
                 .portraitUpsideDown(.when(deviceFamilies: [.pad]))
             ],
             appCategory: .utilities
-        ),
-        .library(
-            name: "AnGitMojiObjC",
-            targets: ["AnGitMojiObjC"]
-        ),
-        .library(
-            name: "AnGitMojiCore",
-            targets: ["AnGitMojiCore"]
         )
+    ],
+    dependencies: [
+      .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.1.4")
     ],
     targets: [
         .executableTarget(
             name: "AnGitMoji",
             dependencies: [
-                .byName(name: "AnGitMojiObjC"),
-                .byName(name: "AnGitMojiCore")
+                "AnGitMojiCore"
             ],
-            exclude: ["Resources"],
+            resources: [
+                .process("Resources")
+            ],
+            plugins: [
+                .plugin(name: "AnGitMojiPlugin")
+            ]
+        ),
+        .target(
+            name: "AnGitMojiCore",
             resources: [
                 .process("Resources")
             ]
         ),
-        .target(
-            name: "AnGitMojiObjC",
-            exclude: ["Resources"],
-            resources: [.process("Resources")],
-            publicHeadersPath: "PublicHeaders"
-        ),
-        .target(
-            name: "AnGitMojiCore",
-            exclude: ["Resources"],
-            resources: [.process("Resources")]
-        ),
         .testTarget(
             name: "AnGitMojiCoreTests",
-            dependencies: [.byName(name: "AnGitMojiCore")],
-            exclude: ["Resources"],
-            resources: [.process("Resources")]
+            dependencies: [
+                "AnGitMojiCore"
+            ],
+            resources: [
+                .process("Resources")
+            ]
+        ),
+        .plugin(
+            name: "AnGitMojiPlugin",
+            capability: .buildTool(),
+            dependencies: ["AnGitMojiResourcesScript"]
+        ),
+        .executableTarget(
+            name: "AnGitMojiResourcesScript",
+            dependencies: [
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ]
         )
     ]
 )
