@@ -37,9 +37,6 @@ let package = Package(
             appCategory: .utilities
         )
     ],
-    dependencies: [
-      .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.1.4")
-    ],
     targets: [
         .executableTarget(
             name: "AnGitMoji",
@@ -48,9 +45,6 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ],
-            plugins: [
-                .plugin(name: "AnGitMojiPlugin")
             ]
         ),
         .target(
@@ -66,17 +60,6 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
-            ]
-        ),
-        .plugin(
-            name: "AnGitMojiPlugin",
-            capability: .buildTool(),
-            dependencies: ["AnGitMojiResourcesScript"]
-        ),
-        .executableTarget(
-            name: "AnGitMojiResourcesScript",
-            dependencies: [
-                .product(name: "ArgumentParser", package: "swift-argument-parser")
             ]
         )
     ]
