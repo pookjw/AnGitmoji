@@ -8,15 +8,15 @@ import PackageDescription
 import AppleProductTypes
 
 let package = Package(
-    name: "AnGitMoji",
+    name: "AnGitmoji",
     platforms: [
         .iOS("16.0"),
         .macCatalyst("16.0")
     ],
     products: [
         .iOSApplication(
-            name: "AnGitMoji",
-            targets: ["AnGitMoji"],
+            name: "AnGitmoji",
+            targets: ["AnGitmoji"],
             bundleIdentifier: "com.pookjw.angitmoji",
             teamIdentifier: "P53D29U9LJ",
             displayVersion: "1.0",
@@ -39,24 +39,24 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "AnGitMoji",
+            name: "AnGitmoji",
             dependencies: [
-                "AnGitMojiCore"
+                "AnGitmojiCore"
             ],
             resources: [
                 .process("Resources")
             ]
         ),
         .target(
-            name: "AnGitMojiCore",
+            name: "AnGitmojiCore",
             resources: [
                 .process("Resources")
             ]
         ),
         .testTarget(
-            name: "AnGitMojiCoreTests",
+            name: "AnGitmojiCoreTests",
             dependencies: [
-                "AnGitMojiCore"
+                "AnGitmojiCore"
             ],
             resources: [
                 .process("Resources")
