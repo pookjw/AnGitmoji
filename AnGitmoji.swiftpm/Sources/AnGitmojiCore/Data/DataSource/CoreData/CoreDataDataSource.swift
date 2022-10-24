@@ -4,6 +4,6 @@ import CoreData
 
 protocol CoreDataDataSource {
     associatedtype PersistentContainer = NSPersistentContainer
-    func container(entityName: String) async throws -> PersistentContainer
-    func context(entityName: String) async throws -> NSManagedObjectContext
+    func container(modelName: String) async throws -> PersistentContainer
+    func context(modelName: String) async throws -> NSManagedObjectContext
 }

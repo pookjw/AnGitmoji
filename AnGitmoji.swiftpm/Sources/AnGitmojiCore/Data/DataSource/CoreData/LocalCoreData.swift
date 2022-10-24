@@ -9,20 +9,20 @@ actor LocalCoreData: CoreDataDataSource {
     
     private init() {}
     
-    func container(entityName: String) async throws -> NSPersistentContainer {
-        if let container: NSPersistentContainer = containers[entityName] {
+    func container(modelName: String) async throws -> NSPersistentContainer {
+        if let container: NSPersistentContainer = containers[modelName] {
             return container
         }
         
-        guard let momdURL: URL = Bundle.module.url(forResource: entityName, withExtension: "mom")?.appendingPathExtension(entityName).appendingPathExtension("momd") else {
-            throw AGMError.failedToFoundMomdURL(entityName: entityName)
+        guard let momdURL: URL = Bundle.module.url(forResource: modelName, withExtension: "mom", subdirectory: "\(modelName).momd") else {
+            throw AGMError.failedToFoundMomdURL(modelName: modelName)
         }
         
         guard let managedObjectModel: NSManagedObjectModel = .init(contentsOf: momdURL) else {
-            throw AGMError.failedToInitManagedObjectModel(entityName: entityName)
+            throw AGMError.failedToInitManagedObjectModel(modelName: modelName)
         }
         
-        let container: NSPersistentContainer = .init(name: entityName, managedObjectModel: managedObjectModel)
+        let container: NSPersistentContainer = .init(name: modelName, managedObjectModel: managedObjectModel)
         
         let _: NSPersistentStoreDescription = try await withCheckedThrowingContinuation { continuation in
             container.loadPersistentStores { description, error in
@@ -34,20 +34,20 @@ actor LocalCoreData: CoreDataDataSource {
             }
         }
         
-        containers[entityName] = container
+        containers[modelName] = container
         
         return container
     }
     
-    func context(entityName: String) async throws -> NSManagedObjectContext {
-        if let context: NSManagedObjectContext = contexts[entityName] {
+    func context(modelName: String) async throws -> NSManagedObjectContext {
+        if let context: NSManagedObjectContext = contexts[modelName] {
             return context
         }
         
-        let container: NSPersistentContainer = try await container(entityName: entityName)
+        let container: NSPersistentContainer = try await container(modelName: modelName)
         let context: NSManagedObjectContext = container.newBackgroundContext()
         
-        contexts[entityName] = context
+        contexts[modelName] = context
         
         return context
     }

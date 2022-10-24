@@ -6,5 +6,9 @@
         <attribute name="cdEmoji" optional="YES" attributeType="String"/>
         <attribute name="cdName" optional="YES" attributeType="String"/>
         <attribute name="cdSemver" optional="YES" attributeType="String"/>
+        <relationship name="group" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="GitmojiGroup" inverseName="gitmoji" inverseEntity="GitmojiGroup"/>
+    </entity>
+    <entity name="GitmojiGroup" representedClassName="GitmojiGroup" syncable="YES">
+        <relationship name="gitmoji" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Gitmoji" inverseName="group" inverseEntity="Gitmoji"/>
     </entity>
 </model>
