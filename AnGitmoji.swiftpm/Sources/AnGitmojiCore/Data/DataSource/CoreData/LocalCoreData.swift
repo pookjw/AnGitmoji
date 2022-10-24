@@ -2,7 +2,7 @@ import Foundation
 import CoreData
 
 @globalActor
-actor LocalCoreData: AGMCoreData {
+actor LocalCoreData: CoreDataDataSource {
     static let shared: LocalCoreData = .init()
     private var containers: [String: NSPersistentContainer] = [:]
     private var contexts: [String: NSManagedObjectContext] = [:]

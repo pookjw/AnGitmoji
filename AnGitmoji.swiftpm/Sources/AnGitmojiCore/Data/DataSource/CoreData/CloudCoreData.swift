@@ -2,7 +2,7 @@ import Foundation
 import CoreData
 
 @globalActor
-actor CloudCoreData: AGMCoreData {
+actor CloudCoreData: CoreDataDataSource {
     static let shared: CloudCoreData = .init()
     private var containers: [String: NSPersistentCloudKitContainer] = [:]
     private var contexts: [String: NSManagedObjectContext] = [:]
