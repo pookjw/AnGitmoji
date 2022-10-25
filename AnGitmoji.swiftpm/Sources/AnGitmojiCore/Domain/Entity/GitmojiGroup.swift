@@ -1,7 +1,8 @@
 import CoreData
 
 public final class GitmojiGroup: NSManagedObject {
-    @NSManaged public var gitmoji: NSSet?
+    @NSManaged public var order: Int
+    @NSManaged public var gitmoji: NSSet
     
     @objc(addGitmojiObject:)
     @NSManaged public func addToGitmoji(_ value: Gitmoji)

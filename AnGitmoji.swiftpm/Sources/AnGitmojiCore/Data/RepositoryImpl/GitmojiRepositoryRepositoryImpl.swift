@@ -36,7 +36,7 @@ actor GitmojiRepositoryImpl: GitmojiRepository {
     }
     
     func gitmojiGroups(fetchRequest: NSFetchRequest<GitmojiGroup>?) async throws -> [GitmojiGroup] {
-        let fetchRequest: NSFetchRequest = fetchRequest ?? .init(entityName: Self.gitmojiGroupEntityName)
+        let fetchRequest: NSFetchRequest<GitmojiGroup> = fetchRequest ?? .init(entityName: Self.gitmojiGroupEntityName)
         let results: [GitmojiGroup] = try await withCheckedThrowingContinuation { [context] continuation in
             context.perform {
                 do {

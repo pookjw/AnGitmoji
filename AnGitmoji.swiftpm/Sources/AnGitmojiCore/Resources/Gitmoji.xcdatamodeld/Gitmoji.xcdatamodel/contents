@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21512" systemVersion="22A380" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="Gitmoji" representedClassName="Gitmoji" syncable="YES">
-        <attribute name="cdCode" optional="YES" attributeType="String"/>
-        <attribute name="cdDetail" optional="YES" attributeType="String"/>
-        <attribute name="cdEmoji" optional="YES" attributeType="String"/>
-        <attribute name="cdName" optional="YES" attributeType="String"/>
-        <attribute name="cdSemver" optional="YES" attributeType="String"/>
+    <entity name="Gitmoji" representedClassName="AnGitmojiCore.Gitmoji" syncable="YES">
+        <attribute name="code" optional="YES" attributeType="String"/>
+        <attribute name="detail" optional="YES" attributeType="String"/>
+        <attribute name="emoji" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="order" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="semver" optional="YES" attributeType="String"/>
         <relationship name="group" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="GitmojiGroup" inverseName="gitmoji" inverseEntity="GitmojiGroup"/>
     </entity>
-    <entity name="GitmojiGroup" representedClassName="GitmojiGroup" syncable="YES">
+    <entity name="GitmojiGroup" representedClassName="AnGitmojiCore.GitmojiGroup" syncable="YES">
+        <attribute name="order" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="gitmoji" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Gitmoji" inverseName="group" inverseEntity="Gitmoji"/>
     </entity>
 </model>
