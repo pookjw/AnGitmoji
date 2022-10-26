@@ -19,6 +19,25 @@ actor GitmojiRepositoryImpl: GitmojiRepository {
         }
     }
     
+    var didSaveStream: AsyncStream<Void> {
+        get async throws {
+            let context: NSManagedObjectContext = try await context
+            let didSaveStream: AsyncStream<Void> = .init { continuation in
+                let task: Task = .detached(priority: .low) {
+                    for await _ in NotificationCenter.default.notifications(named: NSManagedObjectContext.didSaveObjectsNotification, object: context) {
+                        continuation.yield(())
+                    }
+                }
+                
+                continuation.onTermination = { _ in
+                    task.cancel()
+                }
+            }
+            
+            return didSaveStream
+        }
+    }
+    
     var newGitmojiGroup: GitmojiGroup {
         get async throws {
             let context: NSManagedObjectContext = try await context
@@ -48,6 +67,24 @@ actor GitmojiRepositoryImpl: GitmojiRepository {
             }
         }
         return results
+    }
+    
+    func gitmojiGroupsCount(fetchRequest: NSFetchRequest<GitmojiGroup>?) async throws -> Int {
+        let fetchRequest: NSFetchRequest<GitmojiGroup> = fetchRequest ?? .init(entityName: Self.gitmojiGroupEntityName)
+        fetchRequest.includesSubentities = true
+        
+        let count: Int = try await withCheckedThrowingContinuation { [context] continuation in
+            context.perform {
+                do {
+                    let count: Int = try context.count(for: fetchRequest)
+                    continuation.resume(with: .success(count))
+                } catch {
+                    continuation.resume(with: .failure(error))
+                }
+            }
+        }
+        
+        return count
     }
     
     func remove(gitmojiGroup: GitmojiGroup) async throws {

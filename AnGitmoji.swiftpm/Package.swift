@@ -45,12 +45,18 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
+            ],
+            swiftSettings: [
+                .unsafeFlags(["-strict-concurrency=complete"])
             ]
         ),
         .target(
             name: "AnGitmojiCore",
             resources: [
                 .process("Resources")
+            ],
+            swiftSettings: [
+                .unsafeFlags(["-strict-concurrency=complete"])
             ]
         ),
         .testTarget(
@@ -60,6 +66,9 @@ let package = Package(
             ],
             resources: [
                 .process("Resources")
+            ],
+            swiftSettings: [
+                .unsafeFlags(["-strict-concurrency=complete"])
             ]
         )
     ]

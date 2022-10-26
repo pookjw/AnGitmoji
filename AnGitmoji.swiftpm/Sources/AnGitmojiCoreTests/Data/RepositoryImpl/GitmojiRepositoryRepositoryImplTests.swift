@@ -27,19 +27,26 @@ final class GitmojiRepositoryRepositoryImplTests: XCTestCase {
         let _: Gitmoji = try await gitmojiRepositoryImpl!.newGitmoji
     }
     
-    func testGitmojiGroupsWithDefaultFetchRequest() async throws {
+    func testGitmojiGroups() async throws {
         let _: [GitmojiGroup] = try await gitmojiRepositoryImpl!.gitmojiGroups(fetchRequest: nil)
     }
     
-    func testGitmojiGroupsWithSortedFetchRequest() async throws {
-        let fetchRequest: NSFetchRequest<GitmojiGroup> = .init(entityName: Self.gitmojiGroupEntityName)
-        let _: [GitmojiGroup] = try await gitmojiRepositoryImpl!.gitmojiGroups(fetchRequest: fetchRequest)
+    func testGitmojiGroupsCount() async throws {
+        let _: Int = try await gitmojiRepositoryImpl!.gitmojiGroupsCount(fetchRequest: nil)
     }
     
-    func testAddRemoveSaveGitmoji() async throws {
+    func testAddSaveGitmoji() async throws {
         let gitmojiGroup: GitmojiGroup = try await gitmojiRepositoryImpl!.newGitmojiGroup
         let gitmoji: Gitmoji = try await gitmojiRepositoryImpl!.newGitmoji
         
-//        gitmojiGroup.
+        gitmojiGroup.addToGitmoji(gitmoji)
+        
+        try await gitmojiRepositoryImpl!.saveChanges()
+        
+        let gitmojiGroups: [GitmojiGroup] = try await gitmojiRepositoryImpl!.gitmojiGroups(fetchRequest: nil)
+        let hasSavedGitmoji: Bool = gitmojiGroups.contains { gitmojiGroup in
+            return gitmojiGroup.gitmoji.contains(gitmoji)
+        }
+        XCTAssertTrue(hasSavedGitmoji)
     }
 }

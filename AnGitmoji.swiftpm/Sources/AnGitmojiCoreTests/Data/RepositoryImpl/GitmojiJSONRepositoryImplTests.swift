@@ -1,6 +1,15 @@
 import XCTest
 @testable import AnGitmojiCore
 
+private var defaultGitmojiURL: URL? {
+    var components: URLComponents = .init()
+    components.scheme = "https"
+    components.host = "raw.githubusercontent.com"
+    components.path = "/carloscuesta/gitmoji/master/src/data/gitmojis.json"
+    
+    return components.url
+}
+
 private final class GitmojiJSONMockDataSource: GitmojiJSONDataSource {
     private var jsonData: Data {
         get throws {
@@ -17,21 +26,21 @@ private final class GitmojiJSONMockDataSource: GitmojiJSONDataSource {
         XCTAssertFalse(gitmojiJSON.gitmojis.isEmpty)
         return gitmojiJSON
     }
+    
+    var defaultGitmojiJSON: GitmojiJSON {
+        get async throws {
+            guard let defaultGitmojiURL: URL else {
+                throw AGMError.unexpectedNilValue
+            }
+            
+            return try await gitmojiJSON(from: defaultGitmojiURL)
+        }
+    }
 }
 
 final class GitmojiJSONRepositoryImplTests: XCTestCase {
     private var gitmojiJSONRepositoryImplWithNetworkDataSource: GitmojiJSONRepositoryImpl?
     private var gitmojiJSONRepositoryImplWithMockDataSource: GitmojiJSONRepositoryImpl?
-    
-    private var defaultURL: URL {
-        var components: URLComponents = .init()
-        components.scheme = "https"
-        components.host = "raw.githubusercontent.com"
-        components.path = "/carloscuesta/gitmoji/master/src/data/gitmojis.json"
-        
-        let url: URL = components.url!
-        return url
-    }
     
     override func setUp() async throws {
         gitmojiJSONRepositoryImplWithNetworkDataSource = .init(gitmojiDataSource: GitmojiJSONNetwork())
@@ -46,7 +55,7 @@ final class GitmojiJSONRepositoryImplTests: XCTestCase {
     }
     
     func testGitmojiJSONFromNetworkDataSource() async throws {
-        let gitmojiJSON: GitmojiJSON = try await gitmojiJSONRepositoryImplWithNetworkDataSource!.gitmojiJSON(from: defaultURL)
+        let gitmojiJSON: GitmojiJSON = try await gitmojiJSONRepositoryImplWithNetworkDataSource!.gitmojiJSON(from: defaultGitmojiURL!)
         XCTAssertFalse(gitmojiJSON.gitmojis.isEmpty)
     }
     
@@ -56,7 +65,7 @@ final class GitmojiJSONRepositoryImplTests: XCTestCase {
     }
     
     func testGitmojiJSONFromMockDataSource() async throws {
-        let gitmojiJSON: GitmojiJSON = try await gitmojiJSONRepositoryImplWithMockDataSource!.gitmojiJSON(from: defaultURL)
+        let gitmojiJSON: GitmojiJSON = try await gitmojiJSONRepositoryImplWithMockDataSource!.gitmojiJSON(from: defaultGitmojiURL!)
         XCTAssertFalse(gitmojiJSON.gitmojis.isEmpty)
     }
     

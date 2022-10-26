@@ -11,6 +11,6 @@
     </entity>
     <entity name="GitmojiGroup" representedClassName="AnGitmojiCore.GitmojiGroup" syncable="YES">
         <attribute name="order" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
-        <relationship name="gitmoji" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Gitmoji" inverseName="group" inverseEntity="Gitmoji"/>
+        <relationship name="gitmoji" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Gitmoji" inverseName="group" inverseEntity="Gitmoji"/>
     </entity>
 </model>
