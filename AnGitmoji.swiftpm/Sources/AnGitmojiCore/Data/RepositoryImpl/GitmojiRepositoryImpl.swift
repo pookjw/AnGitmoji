@@ -9,7 +9,7 @@ actor GitmojiRepositoryImpl: GitmojiRepository {
     
     private let coreDataDataSource: any CoreDataDataSource
     
-    init(coreDataDataSource: any CoreDataDataSource) {
+    private init(coreDataDataSource: any CoreDataDataSource) {
         self.coreDataDataSource = coreDataDataSource
     }
     
@@ -54,8 +54,7 @@ actor GitmojiRepositoryImpl: GitmojiRepository {
         }
     }
     
-    func gitmojiGroups(fetchRequest: NSFetchRequest<GitmojiGroup>?) async throws -> [GitmojiGroup] {
-        let fetchRequest: NSFetchRequest<GitmojiGroup> = fetchRequest ?? .init(entityName: Self.gitmojiGroupEntityName)
+    func gitmojiGroups(fetchRequest: NSFetchRequest<GitmojiGroup>) async throws -> [GitmojiGroup] {
         let results: [GitmojiGroup] = try await withCheckedThrowingContinuation { [context] continuation in
             context.perform {
                 do {
@@ -69,10 +68,7 @@ actor GitmojiRepositoryImpl: GitmojiRepository {
         return results
     }
     
-    func gitmojiGroupsCount(fetchRequest: NSFetchRequest<GitmojiGroup>?) async throws -> Int {
-        let fetchRequest: NSFetchRequest<GitmojiGroup> = fetchRequest ?? .init(entityName: Self.gitmojiGroupEntityName)
-        fetchRequest.includesSubentities = true
-        
+    func gitmojiGroupsCount(fetchRequest: NSFetchRequest<GitmojiGroup>) async throws -> Int {
         let count: Int = try await withCheckedThrowingContinuation { [context] continuation in
             context.perform {
                 do {
@@ -95,6 +91,24 @@ actor GitmojiRepositoryImpl: GitmojiRepository {
     func remove(gitmoji: Gitmoji) async throws {
         let context: NSManagedObjectContext = try await context
         context.delete(gitmoji)
+    }
+    
+    func removeAllGitmojiGroups() async throws {
+        let container: NSPersistentContainer = try await coreDataDataSource.container(modelName: Self.gitmojiModelName)
+        
+        return try await withCheckedThrowingContinuation { [container, context] continuation in
+            context.perform {
+                do {
+                    let fetchRequest: NSFetchRequest<NSFetchRequestResult> = .init(entityName: Self.gitmojiGroupEntityName)
+                    let batchDelete: NSBatchDeleteRequest = .init(fetchRequest: fetchRequest)
+                    batchDelete.affectedStores = container.persistentStoreCoordinator.persistentStores
+                    try container.persistentStoreCoordinator.execute(batchDelete, with: context)
+                    continuation.resume(with: .success(()))
+                } catch {
+                    continuation.resume(with: .failure(error))
+                }
+            }
+        }
     }
     
     func saveChanges() async throws {

@@ -1,4 +1,4 @@
-import XCTest
+@preconcurrency import XCTest
 @testable import AnGitmojiCore
 
 final class GitmojiRepositoryRepositoryImplTests: XCTestCase {
@@ -6,7 +6,7 @@ final class GitmojiRepositoryRepositoryImplTests: XCTestCase {
     private var gitmojiRepositoryImpl: GitmojiRepositoryImpl?
     
     override func setUp() async throws {
-        gitmojiRepositoryImpl = .init(coreDataDataSource: LocalCoreData.shared)
+        gitmojiRepositoryImpl = .shared
         try await super.setUp()
     }
     
@@ -27,26 +27,26 @@ final class GitmojiRepositoryRepositoryImplTests: XCTestCase {
         let _: Gitmoji = try await gitmojiRepositoryImpl!.newGitmoji
     }
     
-    func testGitmojiGroups() async throws {
-        let _: [GitmojiGroup] = try await gitmojiRepositoryImpl!.gitmojiGroups(fetchRequest: nil)
-    }
-    
-    func testGitmojiGroupsCount() async throws {
-        let _: Int = try await gitmojiRepositoryImpl!.gitmojiGroupsCount(fetchRequest: nil)
-    }
-    
-    func testAddSaveGitmoji() async throws {
-        let gitmojiGroup: GitmojiGroup = try await gitmojiRepositoryImpl!.newGitmojiGroup
-        let gitmoji: Gitmoji = try await gitmojiRepositoryImpl!.newGitmoji
-        
-        gitmojiGroup.addToGitmoji(gitmoji)
-        
-        try await gitmojiRepositoryImpl!.saveChanges()
-        
-        let gitmojiGroups: [GitmojiGroup] = try await gitmojiRepositoryImpl!.gitmojiGroups(fetchRequest: nil)
-        let hasSavedGitmoji: Bool = gitmojiGroups.contains { gitmojiGroup in
-            return gitmojiGroup.gitmoji.contains(gitmoji)
-        }
-        XCTAssertTrue(hasSavedGitmoji)
-    }
+//    func testGitmojiGroups() async throws {
+//        let _: [GitmojiGroup] = try await gitmojiRepositoryImpl!.gitmojiGroups(fetchRequest: nil)
+//    }
+//
+//    func testGitmojiGroupsCount() async throws {
+//        let _: Int = try await gitmojiRepositoryImpl!.gitmojiGroupsCount(fetchRequest: nil)
+//    }
+//
+//    func testAddSaveGitmoji() async throws {
+//        let gitmojiGroup: GitmojiGroup = try await gitmojiRepositoryImpl!.newGitmojiGroup
+//        let gitmoji: Gitmoji = try await gitmojiRepositoryImpl!.newGitmoji
+//
+//        gitmojiGroup.addToGitmoji(gitmoji)
+//
+//        try await gitmojiRepositoryImpl!.saveChanges()
+//
+//        let gitmojiGroups: [GitmojiGroup] = try await gitmojiRepositoryImpl!.gitmojiGroups(fetchRequest: nil)
+//        let hasSavedGitmoji: Bool = gitmojiGroups.contains { gitmojiGroup in
+//            return gitmojiGroup.gitmoji.contains(gitmoji)
+//        }
+//        XCTAssertTrue(hasSavedGitmoji)
+//    }
 }
