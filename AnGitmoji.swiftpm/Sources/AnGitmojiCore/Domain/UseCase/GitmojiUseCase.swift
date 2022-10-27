@@ -24,7 +24,4 @@ public protocol GitmojiUseCase: Sendable {
     
     // MARK: - Save
     func saveChanges() async throws
-    
-    // MARK: - Redo
-    func redoChanges() async throws
 }
