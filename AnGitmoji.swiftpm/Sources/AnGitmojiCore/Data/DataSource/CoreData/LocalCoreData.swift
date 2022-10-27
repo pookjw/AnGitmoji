@@ -1,5 +1,5 @@
 import Foundation
-import CoreData
+@preconcurrency import CoreData
 
 @globalActor
 actor LocalCoreData: CoreDataDataSource {
