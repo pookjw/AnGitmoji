@@ -7,4 +7,7 @@ public enum AGMError: Error {
     case invalidStatusCode(Int)
     case failedToCastType
     case unexpectedNilValue
+    case outOfIndex
+    case noGitmojiGroup
+    case gotNSNotFound
 }

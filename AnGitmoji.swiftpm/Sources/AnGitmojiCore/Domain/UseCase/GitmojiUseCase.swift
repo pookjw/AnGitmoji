@@ -21,6 +21,7 @@ public protocol GitmojiUseCase: Sendable {
     // MARK: - Remove
     func remove(gitmojiGroup: GitmojiGroup) async throws
     func remove(gitmoji: Gitmoji) async throws
+    func removeAllGitmojiGroups() async throws
     
     // MARK: - Save
     func saveChanges() async throws

@@ -10,10 +10,12 @@ final class GitmojiJSONNetworkTests: XCTestCase {
         
         return components.url
     }
-    private var gitmojiJSONNetwork: GitmojiJSONNetwork?
+    private var gitmojiJSONNetwork: GitmojiJSONNetwork!
     
     override func setUp() async throws {
-        gitmojiJSONNetwork = .init()
+        let gitmojiJSONNetwork: GitmojiJSONNetwork = .init()
+        self.gitmojiJSONNetwork = gitmojiJSONNetwork
+        
         try await super.setUp()
     }
     
@@ -23,12 +25,12 @@ final class GitmojiJSONNetworkTests: XCTestCase {
     }
     
     func testGitmojiJSON() async throws {
-        let result: GitmojiJSON = try await gitmojiJSONNetwork!.gitmojiJSON(from: defaultGitmojiURL!)
+        let result: GitmojiJSON = try await gitmojiJSONNetwork.gitmojiJSON(from: defaultGitmojiURL!)
         XCTAssertFalse(result.gitmojis.isEmpty)
     }
     
     func testDefaultGitmojiJSON() async throws {
-        let result: GitmojiJSON = try await gitmojiJSONNetwork!.defaultGitmojiJSON
+        let result: GitmojiJSON = try await gitmojiJSONNetwork.defaultGitmojiJSON
         XCTAssertFalse(result.gitmojis.isEmpty)
     }
 }
