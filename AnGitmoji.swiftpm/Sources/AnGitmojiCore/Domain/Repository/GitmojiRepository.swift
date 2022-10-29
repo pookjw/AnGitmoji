@@ -11,4 +11,6 @@ protocol GitmojiRepository: Sendable {
     func remove(gitmoji: Gitmoji) async throws
     func removeAllGitmojiGroups() async throws
     func saveChanges() async throws
+    func conditionSafe<T: Sendable>(block: @Sendable () async throws -> T) async throws -> T
+    func conditionSafe<T: Sendable>(block: @Sendable () async -> T) async -> T
 }

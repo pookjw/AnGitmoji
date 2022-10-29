@@ -3,16 +3,21 @@ import CoreData
 public protocol GitmojiUseCase: Sendable {
     // MARK: - Core Data Properties
     var context: NSManagedObjectContext { get async throws }
+    
+    // MARK: - Others
     var didSaveStream: AsyncStream<Void> { get async throws }
+    func conditionSafe<T: Sendable>(block: @Sendable () async throws -> T) async throws -> T
+    func conditionSafe<T: Sendable>(block: @Sendable () async -> T) async -> T
     
     // MARK: - Create
     @discardableResult func createDefaultGitmojiGroupIfNeeded() async throws -> Bool
-    func createGitmojiGroup(from url: URL) async throws
+    func createGitmojiGroup(from url: URL) async throws -> GitmojiGroup
     var newGitmojiGroup: GitmojiGroup { get async throws }
     func newGitmoji(to gitmojiGroup: GitmojiGroup, index: Int?) async throws -> Gitmoji
     
     // MARK: - Fetch
     func gitmojiGroups(fetchRequest: NSFetchRequest<GitmojiGroup>?) async throws -> [GitmojiGroup]
+    func gitmojiGroupsCount(fetchRequest: NSFetchRequest<GitmojiGroup>?) async throws -> Int
     
     // MARK: - Order
     func move(gitmojiGroup: GitmojiGroup, to index: Int) async throws

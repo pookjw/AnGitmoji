@@ -1,7 +1,7 @@
 @preconcurrency import XCTest
 @testable import AnGitmojiCore
 
-final class GitmojiRepositoryRepositoryImplTests: XCTestCase {
+final class GitmojiRepositoryImplTests: XCTestCase, @unchecked Sendable {
     private var gitmojiRepositoryImpl: GitmojiRepositoryImpl!
     private var fetchRequest: NSFetchRequest<GitmojiGroup> {
         let fetchRequest: NSFetchRequest<GitmojiGroup> = .init(entityName: "GitmojiGroup")
@@ -27,6 +27,26 @@ final class GitmojiRepositoryRepositoryImplTests: XCTestCase {
         let _: NSManagedObjectContext = try await gitmojiRepositoryImpl.context
     }
     
+    func testDidSaveStream() async throws {
+        let expectation: XCTestExpectation = .init(description: "Stream")
+        
+        let task: Task<Void, Never> = .detached { [self] in
+            do {
+                for await _ in try await gitmojiRepositoryImpl.didSaveStream {
+                    expectation.fulfill()
+                }
+            } catch {
+                XCTFail("\(error)")
+            }
+        }
+        
+        try await Task.sleep(until: .now + .seconds(1.0), clock: .continuous)
+        try await gitmojiRepositoryImpl.saveChanges()
+        
+        wait(for: [expectation], timeout: 5.0)
+        task.cancel()
+    }
+    
     func testNewGitmojiGroup() async throws {
         let _: GitmojiGroup = try await gitmojiRepositoryImpl.newGitmojiGroup
     }
@@ -50,7 +70,7 @@ final class GitmojiRepositoryRepositoryImplTests: XCTestCase {
     
     func testGitmojiGroupsCountNotZero() async throws {
         let _: GitmojiGroup = try await gitmojiRepositoryImpl.newGitmojiGroup
-        try await gitmojiRepositoryImpl!.saveChanges()
+        try await gitmojiRepositoryImpl.saveChanges()
         
         let count: Int = try await gitmojiRepositoryImpl!.gitmojiGroupsCount(fetchRequest: fetchRequest)
         XCTAssertTrue(count == 1)

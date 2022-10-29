@@ -96,6 +96,8 @@ actor GitmojiRepositoryImpl: GitmojiRepository {
     func removeAllGitmojiGroups() async throws {
         let container: NSPersistentContainer = try await coreDataDataSource.container(modelName: Self.gitmojiModelName)
         
+        try await context.reset()
+        
         return try await withCheckedThrowingContinuation { [container, context] continuation in
             context.perform {
                 do {
@@ -122,5 +124,13 @@ actor GitmojiRepositoryImpl: GitmojiRepository {
                 }
             }
         }
+    }
+    
+    func conditionSafe<T: Sendable>(block: @Sendable () async throws -> T) async throws -> T where T : Sendable {
+        return try await block()
+    }
+    
+    func conditionSafe<T: Sendable>(block: @Sendable () async -> T) async -> T where T : Sendable {
+        return await block()
     }
 }
