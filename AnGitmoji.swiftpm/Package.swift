@@ -41,6 +41,7 @@ let package = Package(
         .executableTarget(
             name: "AnGitmoji",
             dependencies: [
+                "AnGitmojiObjC",
                 "AnGitmojiCore"
             ],
             resources: [
@@ -49,6 +50,9 @@ let package = Package(
             swiftSettings: [
                 .unsafeFlags(["-strict-concurrency=complete"])
             ]
+        ),
+        .target(
+            name: "AnGitmojiObjC"
         ),
         .target(
             name: "AnGitmojiCore",

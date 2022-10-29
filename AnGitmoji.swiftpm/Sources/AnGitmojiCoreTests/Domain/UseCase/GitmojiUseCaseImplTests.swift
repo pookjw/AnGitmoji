@@ -1,4 +1,5 @@
 import XCTest
+import CoreData
 @testable import AnGitmojiCore
 
 final class GitmojiUseCaseImplTests: XCTestCase, @unchecked Sendable {

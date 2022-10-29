@@ -1,4 +1,5 @@
 @preconcurrency import XCTest
+import CoreData
 @testable import AnGitmojiCore
 
 final class GitmojiRepositoryImplTests: XCTestCase, @unchecked Sendable {
