@@ -12,8 +12,7 @@ struct MainView: View {
             Text("Test 1")
         }
         .onAppear {
-//            NSApplication.shared
-            print(MyObject())
+            
         }
 
     }
