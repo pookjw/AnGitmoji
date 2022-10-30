@@ -1,5 +1,4 @@
 #import "GitmojiGroupsStatusMenuItem.h"
-#import <objc/message.h>
 @import AnGitmojiCore;
 
 #if TARGET_OS_OSX || TARGET_OS_MACCATALYST
@@ -24,8 +23,7 @@
 }
 
 - (void)configureGitmojiUseCase {
-    // No header declaration of `+[DIService gitmojiUseCase]`. Seems like SPM bug.
-    id<GitmojiUseCase> gitmojiUseCase = ((id<GitmojiUseCase> (*)(Class, SEL))objc_msgSend)(DIService.class, @selector(gitmojiUseCase));
+    id<GitmojiUseCase> gitmojiUseCase = DIService.gitmojiUseCase;
     self.gitmojiUseCase = gitmojiUseCase;
 }
 

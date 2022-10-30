@@ -1,6 +1,6 @@
 import CoreData
 
-final class GitmojiUseCaseImpl: NSObject, GitmojiUseCase, GitmojiUseCaseObjCRepresentable {
+final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable {
     private let gitmojiRepository: GitmojiRepository
     private let gitmojiJSONRepository: GitmojiJSONRepository
     private var fetchRequest: NSFetchRequest<GitmojiGroup> {

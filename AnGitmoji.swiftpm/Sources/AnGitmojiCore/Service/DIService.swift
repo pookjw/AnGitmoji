@@ -1,7 +1,7 @@
 import Foundation
 
 public final class DIService: NSObject {
-    static var gitmojiUseCase: GitmojiUseCase {
+    public static var gitmojiUseCase: GitmojiUseCase {
         let gitmojiJSONDataSource: GitmojiJSONDataSource = GitmojiJSONNetwork()
         
         let gitmojiRepository: GitmojiRepository = GitmojiRepositoryImpl.shared
@@ -12,7 +12,7 @@ public final class DIService: NSObject {
         return gitmojiUseCase
     }
     
-    @objc(gitmojiUseCase) static var gitmojiUseCaseObjCRepresentable: GitmojiUseCaseObjCRepresentable {
+    @objc(gitmojiUseCase) public static var gitmojiUseCaseObjCRepresentable: GitmojiUseCaseObjCRepresentable {
         let gitmojiJSONDataSource: GitmojiJSONDataSource = GitmojiJSONNetwork()
         
         let gitmojiRepository: GitmojiRepository = GitmojiRepositoryImpl.shared
