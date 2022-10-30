@@ -18,8 +18,7 @@
 
 - (instancetype)initWithLength:(CGFloat)length {
     if (self = [super init]) {
-        id nsStatusItem = ((id (*)(id, SEL, CGFloat))objc_msgSend)(self.systemStatusBar, NSSelectorFromString(@"statusItemWithLength:"), length);
-        self.nsStatusItem = nsStatusItem;
+        [self configureNSStatusItemWithLength:length];
     }
     
     return self;
@@ -32,6 +31,11 @@
 - (void)setSystemSymbolName:(NSString *)name accessibilityDescription:(NSString *)description {
     id systemImage = ((id (*)(id, SEL, NSString *, NSString * _Nullable))objc_msgSend)(NSClassFromString(@"NSImage"), NSSelectorFromString(@"imageWithSystemSymbolName:accessibilityDescription:"), name, description);
     ((void (*)(id ,SEL, NSImage *))objc_msgSend)(self.button, NSSelectorFromString(@"setImage:"), systemImage);
+}
+
+- (void)configureNSStatusItemWithLength:(CGFloat)length {
+    id nsStatusItem = ((id (*)(id, SEL, CGFloat))objc_msgSend)(self.systemStatusBar, NSSelectorFromString(@"statusItemWithLength:"), length);
+    self.nsStatusItem = nsStatusItem;
 }
 
 - (id)systemStatusBar {
