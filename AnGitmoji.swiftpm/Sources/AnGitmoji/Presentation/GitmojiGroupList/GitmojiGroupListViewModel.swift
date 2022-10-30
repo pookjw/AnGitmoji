@@ -10,6 +10,18 @@ final class GitmojiGroupListViewModel: ObservableObject {
         ],
         predicate: nil,
         animation: nil
-    ) @MainActor var gitmojiGroups: FetchedResults<GitmojiGroup>
+    ) var fetchedGitmojiGroups: FetchedResults<GitmojiGroup>
+    @Published var gitmojiGroups: [GitmojiGroup] = []
+//    @Environment(\self.managedObjectContext) var context: NSManagedObjectContext = .init()
     private let gitmojiUseCase: GitmojiUseCase = DIService.gitmojiUseCase
+    private var cancellableBag: Set<AnyCancellable> = .init()
+    
+    init() {
+        fetchedGitmojiGroups
+            .publisher
+            .sink { value in
+                print(value)
+            }
+            .store(in: &cancellableBag)
+    }
 }

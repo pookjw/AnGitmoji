@@ -1,11 +1,12 @@
 import SwiftUI
 
 struct GitmojiGroupListView: View {
-    @ObservedObject private var viewModel: GitmojiGroupListViewModel = .init()
+    @StateObject private var viewModel: GitmojiGroupListViewModel = .init()
+    
     var body: some View {
         Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
             .onAppear {
-                print(viewModel.gitmojiGroups)
+//                print(viewModel.gitmojiGroups)
             }
     }
 }

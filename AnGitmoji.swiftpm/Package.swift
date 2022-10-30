@@ -34,6 +34,9 @@ let package = Package(
                 .landscapeLeft,
                 .portraitUpsideDown(.when(deviceFamilies: [.pad]))
             ],
+            capabilities: [
+                .incomingNetworkConnections()
+            ],
             appCategory: .utilities
         )
     ],
