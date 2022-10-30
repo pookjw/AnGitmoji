@@ -10,8 +10,8 @@ public protocol GitmojiUseCase: Sendable {
     func conditionSafe<T: Sendable>(block: @Sendable () async -> T) async -> T
     
     // MARK: - Create
-    @discardableResult func createDefaultGitmojiGroupIfNeeded() async throws -> Bool
-    func createGitmojiGroup(from url: URL) async throws -> GitmojiGroup
+    @discardableResult func createDefaultGitmojiGroupIfNeeded(force: Bool) async throws -> Bool
+    func createGitmojiGroup(from url: URL, name: String) async throws -> GitmojiGroup
     var newGitmojiGroup: GitmojiGroup { get async throws }
     func newGitmoji(to gitmojiGroup: GitmojiGroup, index: Int?) async throws -> Gitmoji
     

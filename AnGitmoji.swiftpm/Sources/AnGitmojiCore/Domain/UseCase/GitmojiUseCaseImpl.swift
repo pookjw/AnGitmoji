@@ -41,26 +41,32 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
         await conditionSafe(block: block)
     }
     
-    public func createDefaultGitmojiGroupIfNeeded() async throws -> Bool {
+    public func createDefaultGitmojiGroupIfNeeded(force: Bool) async throws -> Bool {
         try await conditionSafe {
             let fetchRequest: NSFetchRequest<GitmojiGroup> = fetchRequest
             fetchRequest.includesSubentities = true
             fetchRequest.includesPendingChanges = true
             let count: Int = try await gitmojiRepository.gitmojiGroupsCount(fetchRequest: fetchRequest)
             
-            guard count == .zero else {
+            guard (count == .zero) || force else {
                 return false
             }
             
             let defaultGitmojiJSON: GitmojiJSON = try await gitmojiJSONRepository.defaultGitmojiJSON
-            let _: GitmojiGroup = try await createGitmojiGroup(from: defaultGitmojiJSON)
+            let gitmojiGroup: GitmojiGroup = try await createGitmojiGroup(from: defaultGitmojiJSON)
+            gitmojiGroup.name = "carloscuesta's Gitmojis"
+            gitmojiGroup.index = count
             return true
         }
     }
     
-    public func createGitmojiGroup(from url: URL) async throws -> GitmojiGroup {
-        let gitmojiJSON: GitmojiJSON = try await gitmojiJSONRepository.gitmojiJSON(from: url)
-        return try await createGitmojiGroup(from: gitmojiJSON)
+    public func createGitmojiGroup(from url: URL, name: String) async throws -> GitmojiGroup {
+        try await conditionSafe {
+            let gitmojiJSON: GitmojiJSON = try await gitmojiJSONRepository.gitmojiJSON(from: url)
+            let gitmojiGroup: GitmojiGroup = try await createGitmojiGroup(from: gitmojiJSON)
+            gitmojiGroup.name = name
+            return gitmojiGroup
+        }
     }
     
     public var newGitmojiGroup: GitmojiGroup {
@@ -85,6 +91,9 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
     
     public func newGitmoji(to gitmojiGroup: GitmojiGroup, index: Int?) async throws -> Gitmoji {
         try await conditionSafe {
+            if let index: Int, gitmojiGroup.gitmoji.count < index {
+                throw AGMError.outOfIndex
+            }
             let gitmoji: Gitmoji = try await gitmojiRepository.newGitmoji
             
             if let index: Int {
@@ -98,11 +107,11 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
     }
     
     public func _newGitmoji(to gitmojiGroup: GitmojiGroup, index: Int) async throws -> Gitmoji {
-        return try await newGitmoji(to: newGitmojiGroup, index: index)
+        return try await newGitmoji(to: gitmojiGroup, index: index)
     }
     
     public func _newGitmoji(to gitmojiGroup: GitmojiGroup) async throws -> Gitmoji {
-        return try await newGitmoji(to: newGitmojiGroup, index: nil)
+        return try await newGitmoji(to: gitmojiGroup, index: nil)
     }
     
     public func gitmojiGroups(fetchRequest: NSFetchRequest<GitmojiGroup>?) async throws -> [GitmojiGroup] {

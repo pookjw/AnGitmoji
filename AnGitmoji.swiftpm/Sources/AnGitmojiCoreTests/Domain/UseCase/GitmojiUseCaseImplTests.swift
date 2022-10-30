@@ -33,7 +33,13 @@ final class GitmojiUseCaseImplTests: XCTestCase, @unchecked Sendable {
     }
     
     func testContext() async throws {
-        let _: NSManagedObjectContext = try await gitmojiUseCaseImpl.context
+        let context: NSManagedObjectContext = try await gitmojiUseCaseImpl.context
+        XCTAssertNotNil(context.persistentStoreCoordinator)
+    }
+    
+    func testContextObjC() async throws {
+        let context: NSManagedObjectContext = try await gitmojiUseCaseImpl.context()
+        XCTAssertNotNil(context.persistentStoreCoordinator)
     }
     
     func testDidSaveStream() async throws {
@@ -57,11 +63,15 @@ final class GitmojiUseCaseImplTests: XCTestCase, @unchecked Sendable {
     }
     
     func testCreateDefaultGitmojiGroupIfNeeded() async throws {
-        let isCreated: Bool = try await gitmojiUseCaseImpl.createDefaultGitmojiGroupIfNeeded()
+        let isCreated: Bool = try await gitmojiUseCaseImpl.createDefaultGitmojiGroupIfNeeded(force: false)
         XCTAssertTrue(isCreated)
+        let isCreatedAgain: Bool = try await gitmojiUseCaseImpl.createDefaultGitmojiGroupIfNeeded(force: false)
+        XCTAssertFalse(isCreatedAgain)
+        let isCreatedByForce: Bool = try await gitmojiUseCaseImpl.createDefaultGitmojiGroupIfNeeded(force: true)
+        XCTAssertTrue(isCreatedByForce)
         
         let gitmojiGroups: [GitmojiGroup] = try await gitmojiUseCaseImpl.gitmojiGroups(fetchRequest: nil)
-        XCTAssertTrue(gitmojiGroups.count == 1)
+        XCTAssertTrue(gitmojiGroups.count == 2)
         let gitmojiGroup: GitmojiGroup = gitmojiGroups.first!
         await gitmojiUseCaseImpl.conditionSafe {
             XCTAssertTrue(gitmojiGroup.gitmoji.count > 0)
@@ -69,9 +79,10 @@ final class GitmojiUseCaseImplTests: XCTestCase, @unchecked Sendable {
     }
     
     func testCreateGitmojiGroup() async throws {
-        let gitmojiGroup: GitmojiGroup = try await gitmojiUseCaseImpl.createGitmojiGroup(from: defaultGitmojiURL!)
+        let gitmojiGroup: GitmojiGroup = try await gitmojiUseCaseImpl.createGitmojiGroup(from: defaultGitmojiURL!, name: "Test")
         await gitmojiUseCaseImpl.conditionSafe {
             XCTAssertTrue(gitmojiGroup.gitmoji.count > 0)
+            XCTAssertEqual(gitmojiGroup.name, "Test")
         }
     }
     
@@ -92,6 +103,23 @@ final class GitmojiUseCaseImplTests: XCTestCase, @unchecked Sendable {
         let firstGitmoji: Gitmoji = try await gitmojiUseCaseImpl.newGitmoji(to: gitmojiGroup, index: nil)
         let secondGitmoji: Gitmoji = try await gitmojiUseCaseImpl.newGitmoji(to: gitmojiGroup, index: 1)
         let thirdGitmoji: Gitmoji = try await gitmojiUseCaseImpl.newGitmoji(to: gitmojiGroup, index: nil)
+        
+        await gitmojiUseCaseImpl.conditionSafe {
+            XCTAssertTrue(gitmojiGroup.gitmoji.contains(firstGitmoji))
+            XCTAssertTrue(gitmojiGroup.gitmoji.contains(secondGitmoji))
+            XCTAssertTrue(gitmojiGroup.gitmoji.contains(thirdGitmoji))
+            
+            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: firstGitmoji) == 0)
+            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: secondGitmoji) == 1)
+            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: thirdGitmoji) == 2)
+        }
+    }
+    
+    func testNewGitmojiObjC() async throws {
+        let gitmojiGroup: GitmojiGroup = try await gitmojiUseCaseImpl.newGitmojiGroup
+        let firstGitmoji: Gitmoji = try await gitmojiUseCaseImpl._newGitmoji(to: gitmojiGroup)
+        let secondGitmoji: Gitmoji = try await gitmojiUseCaseImpl._newGitmoji(to: gitmojiGroup, index: 1)
+        let thirdGitmoji: Gitmoji = try await gitmojiUseCaseImpl._newGitmoji(to: gitmojiGroup)
         
         await gitmojiUseCaseImpl.conditionSafe {
             XCTAssertTrue(gitmojiGroup.gitmoji.contains(firstGitmoji))

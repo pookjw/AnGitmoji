@@ -25,7 +25,8 @@ final class GitmojiRepositoryImplTests: XCTestCase, @unchecked Sendable {
     }
     
     func testContext() async throws {
-        let _: NSManagedObjectContext = try await gitmojiRepositoryImpl.context
+        let context: NSManagedObjectContext = try await gitmojiRepositoryImpl.context
+        XCTAssertNotNil(context.persistentStoreCoordinator)
     }
     
     func testDidSaveStream() async throws {

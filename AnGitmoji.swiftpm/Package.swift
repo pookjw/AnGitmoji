@@ -35,7 +35,7 @@ let package = Package(
                 .portraitUpsideDown(.when(deviceFamilies: [.pad]))
             ],
             capabilities: [
-                .incomingNetworkConnections()
+                .outgoingNetworkConnections()
             ],
             appCategory: .utilities
         )

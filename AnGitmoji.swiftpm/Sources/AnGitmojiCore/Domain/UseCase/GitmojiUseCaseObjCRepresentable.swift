@@ -1,6 +1,6 @@
 import CoreData
 
-@objc(GitmojiUseCase) public protocol GitmojiUseCaseObjCRepresentable: AnyObject {
+@objc(GitmojiUseCase) public protocol GitmojiUseCaseObjCRepresentable: AnyObject, Sendable {
     // MARK: - Core Data Properties
     func context() async throws -> NSManagedObjectContext
     
@@ -8,8 +8,8 @@ import CoreData
     @objc(conditionSafeWithBlock:completionHandler:) func _conditionSafe(block: @Sendable @escaping () -> Void) async
     
     // MARK: - Create
-    @discardableResult func createDefaultGitmojiGroupIfNeeded() async throws -> Bool
-    func createGitmojiGroup(from url: URL) async throws -> GitmojiGroup
+    @discardableResult func createDefaultGitmojiGroupIfNeeded(force: Bool) async throws -> Bool
+    func createGitmojiGroup(from url: URL, name: String) async throws -> GitmojiGroup
     func newGitmojiGroup() async throws -> GitmojiGroup
     @objc(newGitmojiTo:index:completionHandler:) func _newGitmoji(to gitmojiGroup: GitmojiGroup, index: Int) async throws -> Gitmoji
     @objc(newGitmojiTo:completionHandler:) func _newGitmoji(to gitmojiGroup: GitmojiGroup) async throws -> Gitmoji
