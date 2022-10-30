@@ -1,5 +1,4 @@
 import SwiftUI
-import AnGitmojiObjC
 import AnGitmojiCore
 
 struct MainView: View {

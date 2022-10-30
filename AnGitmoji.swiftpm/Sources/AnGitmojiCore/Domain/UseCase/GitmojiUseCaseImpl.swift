@@ -1,6 +1,6 @@
 import CoreData
 
-public final class GitmojiUseCaseImpl: GitmojiUseCase {
+final class GitmojiUseCaseImpl: NSObject, GitmojiUseCase, GitmojiUseCaseObjCRepresentable {
     private let gitmojiRepository: GitmojiRepository
     private let gitmojiJSONRepository: GitmojiJSONRepository
     private var fetchRequest: NSFetchRequest<GitmojiGroup> {
@@ -19,6 +19,10 @@ public final class GitmojiUseCaseImpl: GitmojiUseCase {
         }
     }
     
+    public func context() async throws -> NSManagedObjectContext {
+        return try await context
+    }
+    
     public var didSaveStream: AsyncStream<Void> {
         get async throws {
             return try await gitmojiRepository.didSaveStream
@@ -31,6 +35,10 @@ public final class GitmojiUseCaseImpl: GitmojiUseCase {
     
     public func conditionSafe<T: Sendable>(block: @Sendable () async -> T) async -> T where T : Sendable {
         return await gitmojiRepository.conditionSafe(block: block)
+    }
+    
+    public func _conditionSafe(block: @Sendable @escaping () -> Void) async {
+        await conditionSafe(block: block)
     }
     
     public func createDefaultGitmojiGroupIfNeeded() async throws -> Bool {
@@ -71,6 +79,10 @@ public final class GitmojiUseCaseImpl: GitmojiUseCase {
         }
     }
     
+    public func newGitmojiGroup() async throws -> GitmojiGroup {
+        return try await newGitmojiGroup
+    }
+    
     public func newGitmoji(to gitmojiGroup: GitmojiGroup, index: Int?) async throws -> Gitmoji {
         try await conditionSafe {
             let gitmoji: Gitmoji = try await gitmojiRepository.newGitmoji
@@ -83,6 +95,14 @@ public final class GitmojiUseCaseImpl: GitmojiUseCase {
             
             return gitmoji
         }
+    }
+    
+    public func _newGitmoji(to gitmojiGroup: GitmojiGroup, index: Int) async throws -> Gitmoji {
+        return try await newGitmoji(to: newGitmojiGroup, index: index)
+    }
+    
+    public func _newGitmoji(to gitmojiGroup: GitmojiGroup) async throws -> Gitmoji {
+        return try await newGitmoji(to: newGitmojiGroup, index: nil)
     }
     
     public func gitmojiGroups(fetchRequest: NSFetchRequest<GitmojiGroup>?) async throws -> [GitmojiGroup] {

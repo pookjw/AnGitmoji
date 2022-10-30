@@ -52,7 +52,10 @@ let package = Package(
             ]
         ),
         .target(
-            name: "AnGitmojiObjC"
+            name: "AnGitmojiObjC",
+            dependencies: [
+                "AnGitmojiCore"
+            ]
         ),
         .target(
             name: "AnGitmojiCore",
