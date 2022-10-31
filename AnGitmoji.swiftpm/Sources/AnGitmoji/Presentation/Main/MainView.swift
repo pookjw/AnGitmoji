@@ -9,11 +9,12 @@ struct MainView: View {
     var body: some View {
         if let context: NSManagedObjectContext = viewModel.context {
             NavigationSplitView {
-                GitmojiGroupListView()
+                GitmojiGroupListView(selectedGitmojiGroup: $selectedGitmojiGroup)
                     .environment(\.managedObjectContext, context)
             } detail: {
                 GitmojiGroupDetailView()
                     .environment(\.managedObjectContext, context)
+                    .environment(\.selectedGitmojiGroup, selectedGitmojiGroup)
             }
         } else {
             EmptyView()

@@ -2,6 +2,7 @@
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21512" systemVersion="22C5033e" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Gitmoji" representedClassName="AnGitmojiCore.Gitmoji" syncable="YES">
         <attribute name="code" optional="YES" attributeType="String"/>
+        <attribute name="count" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="detail" optional="YES" attributeType="String"/>
         <attribute name="emoji" optional="YES" attributeType="String"/>
         <attribute name="name" optional="YES" attributeType="String"/>

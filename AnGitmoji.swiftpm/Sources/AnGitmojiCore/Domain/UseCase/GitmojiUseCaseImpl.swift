@@ -3,10 +3,6 @@ import CoreData
 final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable {
     private let gitmojiRepository: GitmojiRepository
     private let gitmojiJSONRepository: GitmojiJSONRepository
-    private var fetchRequest: NSFetchRequest<GitmojiGroup> {
-        let fetchRequest: NSFetchRequest<GitmojiGroup> = .init(entityName: "GitmojiGroup")
-        return fetchRequest
-    }
     
     init(gitmojiRepository: GitmojiRepository, gitmojiJSONRepository: GitmojiJSONRepository) {
         self.gitmojiRepository = gitmojiRepository
@@ -17,6 +13,11 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
         get async throws {
             return try await gitmojiRepository.context
         }
+    }
+    
+    public var fetchRequest: NSFetchRequest<GitmojiGroup> {
+        let fetchRequest: NSFetchRequest<GitmojiGroup> = .init(entityName: "GitmojiGroup")
+        return fetchRequest
     }
     
     public func context() async throws -> NSManagedObjectContext {

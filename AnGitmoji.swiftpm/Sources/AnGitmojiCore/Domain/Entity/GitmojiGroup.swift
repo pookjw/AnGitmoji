@@ -2,7 +2,7 @@ import CoreData
 
 public final class GitmojiGroup: NSManagedObject, @unchecked Sendable {
     @NSManaged public internal(set) var index: Int
-    @NSManaged public internal(set) var name: String
+    @NSManaged public var name: String
     @NSManaged public internal(set) var gitmoji: NSOrderedSet
     
     @objc(insertObject:inGitmojiAtIndex:)
