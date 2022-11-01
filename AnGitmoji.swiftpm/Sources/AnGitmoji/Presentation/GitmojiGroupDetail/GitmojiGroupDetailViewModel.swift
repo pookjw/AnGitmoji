@@ -84,6 +84,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         tasks.insert(task)
     }
     
+    // TODO: Use NSFetchRequest
     private func updateGitmojis() async {
         await gitmojiUseCase.conditionSafe { [weak self] in
             var gitmojis: [Gitmoji] = await self?.selectedGitmojiGroup?.gitmojis.array as? [Gitmoji] ?? []
