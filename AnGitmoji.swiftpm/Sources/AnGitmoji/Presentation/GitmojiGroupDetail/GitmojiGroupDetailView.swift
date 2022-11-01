@@ -4,24 +4,37 @@ import AnGitmojiCore
 struct GitmojiGroupDetailView: View {
     @Environment(\.selectedGitmojiGroup) private var selectedGitmojiGroup: GitmojiGroup?
     @StateObject private var viewModel: GitmojiGroupDetailViewModel = .init()
-    @State private var updateTask: Task<Void, Never>?
+    @State private var tasks: Set<Task<Void, Never>> = .init()
+    @State private var selectedGitmojis: Set<Gitmoji.ID> = .init()
+    @State private var sortOrder: [KeyPathComparator<Gitmoji>] = []
     
     var body: some View {
-        if let gitmojis: [Gitmoji] = viewModel.gitmojis {
-            Table(gitmojis) {
+        if let selectedGitmojiGroup: GitmojiGroup,
+           let gitmojis: [Gitmoji] = viewModel.gitmojis {
+            Table(selection: $viewModel.selectedGitmojis, sortOrder: $viewModel.sortOrder) { 
                 TableColumn("Emoji", value: \.emoji)
                 TableColumn("Code", value: \.code)
-                TableColumn("Description") { value in
-                    Text(value.detail)
-                        .lineLimit(nil)
+                TableColumn("Description", value: \.detail)
+            } rows: { 
+                ForEach(gitmojis) { gitmoji in
+                    TableRow(gitmoji)
+                        .contextMenu { 
+                            Button("Copy") { 
+                                viewModel.copy(from: gitmoji)
+                            }
+                        }
                 }
-                TableColumn("Semver") { value in
-                    Text(value.semver ?? "No Semver")
+                .contextMenu { 
+                    
                 }
             }
                 .onChange(of: selectedGitmojiGroup) { newValue in
                     update(using: newValue)
                 }
+                .navigationTitle(selectedGitmojiGroup.name)
+#if os(macOS) || targetEnvironment(macCatalyst)
+                .navigationSubtitle("\(gitmojis.count) items")
+#endif
         } else {
             Text("No Selection")
                 .onChange(of: selectedGitmojiGroup) { newValue in
@@ -31,10 +44,10 @@ struct GitmojiGroupDetailView: View {
     }
     
     private func update(using selectedGitmojiGroup: GitmojiGroup?) {
-        updateTask?.cancel()
-        updateTask = .detached { [viewModel] in
+        tasks = .init()
+        tasks.insert(.detached { [viewModel] in
             await viewModel.update(using: selectedGitmojiGroup)
-        }
+        })
     }
 }
 
