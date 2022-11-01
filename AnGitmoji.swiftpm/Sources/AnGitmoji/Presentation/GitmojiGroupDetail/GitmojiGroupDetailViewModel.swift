@@ -55,7 +55,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
                 }
             })
             
-            // When Gitmojis is updated, reload Data Source.
+            // When Gitmojis is updated, reload the Data Source.
             await self?.insert(task: .detached { [weak self, gitmojiUseCase] in
                 do {
                     for await updatedObjects in try await gitmojiUseCase.didUpdateObjectsStream {

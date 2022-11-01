@@ -46,9 +46,9 @@ struct GitmojiGroupDetailView: View {
                     }
                 }
                     .navigationTitle(selectedGitmojiGroup.name)
-    #if os(macOS) || targetEnvironment(macCatalyst)
+#if os(macOS) || targetEnvironment(macCatalyst)
                     .navigationSubtitle("\(viewModel.gitmojis.count) items")
-    #endif
+#endif
             } else {
                 Text("No Selection")
             }
