@@ -5,41 +5,55 @@ struct GitmojiGroupDetailView: View {
     @Environment(\.selectedGitmojiGroup) private var selectedGitmojiGroup: GitmojiGroup?
     @StateObject private var viewModel: GitmojiGroupDetailViewModel = .init()
     @State private var tasks: Set<Task<Void, Never>> = .init()
-    @State private var selectedGitmojis: Set<Gitmoji.ID> = .init()
-    @State private var sortOrder: [KeyPathComparator<Gitmoji>] = []
     
     var body: some View {
-        if let selectedGitmojiGroup: GitmojiGroup,
-           let gitmojis: [Gitmoji] = viewModel.gitmojis {
-            Table(selection: $viewModel.selectedGitmojis, sortOrder: $viewModel.sortOrder) { 
-                TableColumn("Emoji", value: \.emoji)
-                TableColumn("Code", value: \.code)
-                TableColumn("Description", value: \.detail)
-            } rows: { 
-                ForEach(gitmojis) { gitmoji in
-                    TableRow(gitmoji)
-                        .contextMenu { 
-                            Button("Copy") { 
-                                viewModel.copy(from: gitmoji)
+        Group {
+            if let selectedGitmojiGroup: GitmojiGroup {
+                Table(selection: $viewModel.selectedGitmojis, sortOrder: $viewModel.sortOrders) {
+                    TableColumn("Emoji", value: \.emoji)
+                    TableColumn("Code", value: \.code)
+                    TableColumn("Description", value: \.detail) { gitmoji in
+                        Text(gitmoji.detail)
+                            .lineLimit(nil)
+                    }
+                    TableColumn("Count", value: \.count, comparator: IntComparator()) { gitmoji in
+                        Text("\(gitmoji.count)")
+                    }
+                } rows: {
+                    ForEach(viewModel.gitmojis) { gitmoji in
+                        TableRow(gitmoji)
+                            .contextMenu {
+                                Button("Copy") {
+                                    tasks.insert(.detached { [viewModel] in
+                                        do {
+                                            try await viewModel.copy(from: gitmoji)
+                                        } catch {
+                                            fatalError("\(error)")
+                                        }
+                                    })
+                                }
+                                
+                                Button("Reset Count") {
+                                    fatalError("TODO")
+                                }
                             }
-                        }
+                    }
                 }
-                .contextMenu { 
-                    
-                }
+                    .navigationTitle(selectedGitmojiGroup.name)
+    #if os(macOS) || targetEnvironment(macCatalyst)
+                    .navigationSubtitle("\(viewModel.gitmojis.count) items")
+    #endif
+            } else {
+                Text("No Selection")
             }
-                .onChange(of: selectedGitmojiGroup) { newValue in
-                    update(using: newValue)
-                }
-                .navigationTitle(selectedGitmojiGroup.name)
-#if os(macOS) || targetEnvironment(macCatalyst)
-                .navigationSubtitle("\(gitmojis.count) items")
-#endif
-        } else {
-            Text("No Selection")
-                .onChange(of: selectedGitmojiGroup) { newValue in
-                    update(using: newValue)
-                }
+        }
+        .onChange(of: selectedGitmojiGroup) { newValue in
+            update(using: newValue)
+        }
+        .toolbar {
+            Button("Test") {
+                
+            }
         }
     }
     
