@@ -38,6 +38,72 @@ actor GitmojiRepositoryImpl: GitmojiRepository {
         }
     }
     
+    var didInsertObjectsStream: AsyncStream<Set<NSManagedObject>> {
+        get async throws {
+            let context: NSManagedObjectContext = try await context
+            let didInsertObjectsStream: AsyncStream<Set<NSManagedObject>> = .init { contination in
+                let task: Task = .detached(priority: .low) {
+                    for await notification in NotificationCenter.default.notifications(named: .NSManagedObjectContextObjectsDidChange, object: context) {
+                        guard let insertedObjects: Set<NSManagedObject> = notification.userInfo?[NSInsertedObjectsKey] as? Set<NSManagedObject> else {
+                            continue
+                        }
+                        contination.yield(with: .success(.init(insertedObjects)))
+                    }
+                }
+                
+                contination.onTermination = { _ in
+                    task.cancel()
+                }
+            }
+            
+            return didInsertObjectsStream
+        }
+    }
+    
+    var didUpdateObjectsStream: AsyncStream<Set<NSManagedObject>> {
+        get async throws {
+            let context: NSManagedObjectContext = try await context
+            let didUpdateObjectsStream: AsyncStream<Set<NSManagedObject>> = .init { contination in
+                let task: Task = .detached(priority: .low) {
+                    for await notification in NotificationCenter.default.notifications(named: .NSManagedObjectContextObjectsDidChange, object: context) {
+                        guard let updatedObjects: Set<NSManagedObject> = notification.userInfo?[NSUpdatedObjectsKey] as? Set<NSManagedObject> else {
+                            continue
+                        }
+                        contination.yield(with: .success(.init(updatedObjects)))
+                    }
+                }
+                
+                contination.onTermination = { _ in
+                    task.cancel()
+                }
+            }
+            
+            return didUpdateObjectsStream
+        }
+    }
+    
+    var didDeleteObjectsStream: AsyncStream<Set<NSManagedObject>> {
+        get async throws {
+            let context: NSManagedObjectContext = try await context
+            let didDeleteObjectsStream: AsyncStream<Set<NSManagedObject>> = .init { contination in
+                let task: Task = .detached(priority: .low) {
+                    for await notification in NotificationCenter.default.notifications(named: .NSManagedObjectContextObjectsDidChange, object: context) {
+                        guard let deletedObjects: Set<NSManagedObject> = notification.userInfo?[NSDeletedObjectsKey] as? Set<NSManagedObject> else {
+                            continue
+                        }
+                        contination.yield(with: .success(.init(deletedObjects)))
+                    }
+                }
+                
+                contination.onTermination = { _ in
+                    task.cancel()
+                }
+            }
+            
+            return didDeleteObjectsStream
+        }
+    }
+    
     var newGitmojiGroup: GitmojiGroup {
         get async throws {
             let context: NSManagedObjectContext = try await context

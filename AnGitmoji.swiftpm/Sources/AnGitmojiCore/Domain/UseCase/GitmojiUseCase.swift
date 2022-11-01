@@ -7,6 +7,9 @@ public protocol GitmojiUseCase: Sendable {
     
     // MARK: - Others
     var didSaveStream: AsyncStream<Void> { get async throws }
+    var didInsertObjectsStream: AsyncStream<Set<NSManagedObject>> { get async throws }
+    var didUpdateObjectsStream: AsyncStream<Set<NSManagedObject>> { get async throws }
+    var didDeleteObjectsStream: AsyncStream<Set<NSManagedObject>> { get async throws }
     func conditionSafe<T: Sendable>(block: @Sendable () async throws -> T) async throws -> T
     func conditionSafe<T: Sendable>(block: @Sendable () async -> T) async -> T
     

@@ -58,7 +58,80 @@ final class GitmojiUseCaseImplTests: XCTestCase, @unchecked Sendable {
         try await Task.sleep(until: .now + .seconds(1.0), clock: .continuous)
         try await gitmojiUseCaseImpl.saveChanges()
         
-        wait(for: [expectation], timeout: 5.0)
+        wait(for: [expectation], timeout: 3.0)
+        task.cancel()
+    }
+    
+    func testDidInsertObjectsStream() async throws {
+        let gitmojiGroup: GitmojiGroup = try await gitmojiUseCaseImpl.newGitmojiGroup
+        let expectation: XCTestExpectation = .init(description: "Stream")
+        
+        let task: Task<Void, Never> = .detached { [self] in
+            do {
+                for await insertedObjects in try await gitmojiUseCaseImpl.didInsertObjectsStream {
+                    XCTAssertTrue(insertedObjects.contains(gitmojiGroup))
+                    expectation.fulfill()
+                }
+            } catch {
+                XCTFail("\(error)")
+            }
+        }
+        
+        try await Task.sleep(until: .now + .seconds(1.0), clock: .continuous)
+        try await gitmojiUseCaseImpl.saveChanges()
+        
+        wait(for: [expectation], timeout: 3.0)
+        task.cancel()
+    }
+    
+    func testDidUpdateObjectsStream() async throws {
+        let gitmojiGroup: GitmojiGroup = try await gitmojiUseCaseImpl.newGitmojiGroup
+        try await gitmojiUseCaseImpl.saveChanges()
+        
+        gitmojiGroup.name = "Hello World!"
+        
+        let expectation: XCTestExpectation = .init(description: "Stream")
+        
+        let task: Task<Void, Never> = .detached { [self] in
+            do {
+                for await updatedObjects in try await gitmojiUseCaseImpl.didUpdateObjectsStream {
+                    XCTAssertTrue(updatedObjects.contains(gitmojiGroup))
+                    expectation.fulfill()
+                }
+            } catch {
+                XCTFail("\(error)")
+            }
+        }
+        
+        try await Task.sleep(until: .now + .seconds(1.0), clock: .continuous)
+        try await gitmojiUseCaseImpl.saveChanges()
+        
+        wait(for: [expectation], timeout: 3.0)
+        task.cancel()
+    }
+    
+    func testDidDeleteObjectsStream() async throws {
+        let gitmojiGroup: GitmojiGroup = try await gitmojiUseCaseImpl.newGitmojiGroup
+        try await gitmojiUseCaseImpl.saveChanges()
+        try await gitmojiUseCaseImpl.remove(gitmojiGroup: gitmojiGroup)
+        
+        let expectation: XCTestExpectation = .init(description: "Stream")
+        
+        let task: Task<Void, Never> = .detached { [self] in
+            do {
+                for await deletedObjects in try await gitmojiUseCaseImpl.didDeleteObjectsStream {
+                    XCTAssertTrue(deletedObjects.contains(gitmojiGroup))
+                    expectation.fulfill()
+                }
+            } catch {
+                XCTFail("\(error)")
+            }
+        }
+        
+        try await Task.sleep(until: .now + .seconds(1.0), clock: .continuous)
+        try await gitmojiUseCaseImpl.saveChanges()
+        
+        wait(for: [expectation], timeout: 3.0)
         task.cancel()
     }
     
@@ -74,14 +147,14 @@ final class GitmojiUseCaseImplTests: XCTestCase, @unchecked Sendable {
         XCTAssertTrue(gitmojiGroups.count == 2)
         let gitmojiGroup: GitmojiGroup = gitmojiGroups.first!
         await gitmojiUseCaseImpl.conditionSafe {
-            XCTAssertTrue(gitmojiGroup.gitmoji.count > 0)
+            XCTAssertTrue(gitmojiGroup.gitmojis.count > 0)
         }
     }
     
     func testCreateGitmojiGroup() async throws {
         let gitmojiGroup: GitmojiGroup = try await gitmojiUseCaseImpl.createGitmojiGroup(from: defaultGitmojiURL!, name: "Test")
         await gitmojiUseCaseImpl.conditionSafe {
-            XCTAssertTrue(gitmojiGroup.gitmoji.count > 0)
+            XCTAssertTrue(gitmojiGroup.gitmojis.count > 0)
             XCTAssertEqual(gitmojiGroup.name, "Test")
         }
     }
@@ -105,13 +178,13 @@ final class GitmojiUseCaseImplTests: XCTestCase, @unchecked Sendable {
         let thirdGitmoji: Gitmoji = try await gitmojiUseCaseImpl.newGitmoji(to: gitmojiGroup, index: nil)
         
         await gitmojiUseCaseImpl.conditionSafe {
-            XCTAssertTrue(gitmojiGroup.gitmoji.contains(firstGitmoji))
-            XCTAssertTrue(gitmojiGroup.gitmoji.contains(secondGitmoji))
-            XCTAssertTrue(gitmojiGroup.gitmoji.contains(thirdGitmoji))
+            XCTAssertTrue(gitmojiGroup.gitmojis.contains(firstGitmoji))
+            XCTAssertTrue(gitmojiGroup.gitmojis.contains(secondGitmoji))
+            XCTAssertTrue(gitmojiGroup.gitmojis.contains(thirdGitmoji))
             
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: firstGitmoji) == 0)
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: secondGitmoji) == 1)
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: thirdGitmoji) == 2)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: firstGitmoji) == 0)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: secondGitmoji) == 1)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: thirdGitmoji) == 2)
         }
     }
     
@@ -122,13 +195,13 @@ final class GitmojiUseCaseImplTests: XCTestCase, @unchecked Sendable {
         let thirdGitmoji: Gitmoji = try await gitmojiUseCaseImpl._newGitmoji(to: gitmojiGroup)
         
         await gitmojiUseCaseImpl.conditionSafe {
-            XCTAssertTrue(gitmojiGroup.gitmoji.contains(firstGitmoji))
-            XCTAssertTrue(gitmojiGroup.gitmoji.contains(secondGitmoji))
-            XCTAssertTrue(gitmojiGroup.gitmoji.contains(thirdGitmoji))
+            XCTAssertTrue(gitmojiGroup.gitmojis.contains(firstGitmoji))
+            XCTAssertTrue(gitmojiGroup.gitmojis.contains(secondGitmoji))
+            XCTAssertTrue(gitmojiGroup.gitmojis.contains(thirdGitmoji))
             
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: firstGitmoji) == 0)
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: secondGitmoji) == 1)
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: thirdGitmoji) == 2)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: firstGitmoji) == 0)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: secondGitmoji) == 1)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: thirdGitmoji) == 2)
         }
     }
     
@@ -194,27 +267,27 @@ final class GitmojiUseCaseImplTests: XCTestCase, @unchecked Sendable {
         try await gitmojiUseCaseImpl.conditionSafe {
             // 2 1 3
             try await gitmojiUseCaseImpl.move(gitmoji: firstGitmoji, to: 1)
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: firstGitmoji) == 1)
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: secondGitmoji) == 0)
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: thirdGitmoji) == 2)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: firstGitmoji) == 1)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: secondGitmoji) == 0)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: thirdGitmoji) == 2)
             
             // 3 2 1
             try await gitmojiUseCaseImpl.move(gitmoji: thirdGitmoji, to: 0)
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: firstGitmoji) == 2)
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: secondGitmoji) == 1)
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: thirdGitmoji) == 0)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: firstGitmoji) == 2)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: secondGitmoji) == 1)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: thirdGitmoji) == 0)
             
             // 1 3 2
             try await gitmojiUseCaseImpl.move(gitmoji: firstGitmoji, to: 0)
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: firstGitmoji) == 0)
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: secondGitmoji) == 2)
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: thirdGitmoji) == 1)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: firstGitmoji) == 0)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: secondGitmoji) == 2)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: thirdGitmoji) == 1)
             
             // 1 2 3
             try await gitmojiUseCaseImpl.move(gitmoji: thirdGitmoji, to: 2)
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: firstGitmoji) == 0)
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: secondGitmoji) == 1)
-            XCTAssertTrue(gitmojiGroup.gitmoji.index(of: thirdGitmoji) == 2)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: firstGitmoji) == 0)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: secondGitmoji) == 1)
+            XCTAssertTrue(gitmojiGroup.gitmojis.index(of: thirdGitmoji) == 2)
         }
     }
     
@@ -233,7 +306,7 @@ final class GitmojiUseCaseImplTests: XCTestCase, @unchecked Sendable {
         let gitmojiGroup: GitmojiGroup = try await gitmojiUseCaseImpl.newGitmojiGroup
         let gitmoji: Gitmoji = try await gitmojiUseCaseImpl.newGitmoji(to: gitmojiGroup, index: nil)
         try await gitmojiUseCaseImpl.remove(gitmoji: gitmoji)
-        XCTAssertTrue(gitmojiGroup.gitmoji.count == .zero)
+        XCTAssertTrue(gitmojiGroup.gitmojis.count == .zero)
     }
     
     func testRemoveAllGitmojiGroups() async throws {

@@ -45,7 +45,80 @@ final class GitmojiRepositoryImplTests: XCTestCase, @unchecked Sendable {
         try await Task.sleep(until: .now + .seconds(1.0), clock: .continuous)
         try await gitmojiRepositoryImpl.saveChanges()
         
-        wait(for: [expectation], timeout: 5.0)
+        wait(for: [expectation], timeout: 3.0)
+        task.cancel()
+    }
+    
+    func testDidInsertObjectsStream() async throws {
+        let gitmojiGroup: GitmojiGroup = try await gitmojiRepositoryImpl.newGitmojiGroup
+        let expectation: XCTestExpectation = .init(description: "Stream")
+        
+        let task: Task<Void, Never> = .detached { [self] in
+            do {
+                for await insertedObjects in try await gitmojiRepositoryImpl.didInsertObjectsStream {
+                    XCTAssertTrue(insertedObjects.contains(gitmojiGroup))
+                    expectation.fulfill()
+                }
+            } catch {
+                XCTFail("\(error)")
+            }
+        }
+        
+        try await Task.sleep(until: .now + .seconds(1.0), clock: .continuous)
+        try await gitmojiRepositoryImpl.saveChanges()
+        
+        wait(for: [expectation], timeout: 3.0)
+        task.cancel()
+    }
+    
+    func testDidUpdateObjectsStream() async throws {
+        let gitmojiGroup: GitmojiGroup = try await gitmojiRepositoryImpl.newGitmojiGroup
+        try await gitmojiRepositoryImpl.saveChanges()
+        
+        gitmojiGroup.name = "Hello World!"
+        
+        let expectation: XCTestExpectation = .init(description: "Stream")
+        
+        let task: Task<Void, Never> = .detached { [self] in
+            do {
+                for await updatedObjects in try await gitmojiRepositoryImpl.didUpdateObjectsStream {
+                    XCTAssertTrue(updatedObjects.contains(gitmojiGroup))
+                    expectation.fulfill()
+                }
+            } catch {
+                XCTFail("\(error)")
+            }
+        }
+        
+        try await Task.sleep(until: .now + .seconds(1.0), clock: .continuous)
+        try await gitmojiRepositoryImpl.saveChanges()
+        
+        wait(for: [expectation], timeout: 3.0)
+        task.cancel()
+    }
+    
+    func testDidDeleteObjectsStream() async throws {
+        let gitmojiGroup: GitmojiGroup = try await gitmojiRepositoryImpl.newGitmojiGroup
+        try await gitmojiRepositoryImpl.saveChanges()
+        try await gitmojiRepositoryImpl.remove(gitmojiGroup: gitmojiGroup)
+        
+        let expectation: XCTestExpectation = .init(description: "Stream")
+        
+        let task: Task<Void, Never> = .detached { [self] in
+            do {
+                for await deletedObjects in try await gitmojiRepositoryImpl.didDeleteObjectsStream {
+                    XCTAssertTrue(deletedObjects.contains(gitmojiGroup))
+                    expectation.fulfill()
+                }
+            } catch {
+                XCTFail("\(error)")
+            }
+        }
+        
+        try await Task.sleep(until: .now + .seconds(1.0), clock: .continuous)
+        try await gitmojiRepositoryImpl.saveChanges()
+        
+        wait(for: [expectation], timeout: 3.0)
         task.cancel()
     }
     
@@ -90,11 +163,11 @@ final class GitmojiRepositoryImplTests: XCTestCase, @unchecked Sendable {
     func testRemoveGitmoji() async throws {
         let gitmojiGroup: GitmojiGroup = try await gitmojiRepositoryImpl.newGitmojiGroup
         let gitmoji: Gitmoji = try await gitmojiRepositoryImpl.newGitmoji
-        gitmojiGroup.addToGitmoji(gitmoji)
+        gitmojiGroup.addToGitmojis(gitmoji)
         try await gitmojiRepositoryImpl.saveChanges()
         try await gitmojiRepositoryImpl.remove(gitmoji: gitmoji)
         try await gitmojiRepositoryImpl.saveChanges()
-        let count: Int = (try await gitmojiRepositoryImpl.gitmojiGroups(fetchRequest: fetchRequest)).first!.gitmoji.count
+        let count: Int = (try await gitmojiRepositoryImpl.gitmojiGroups(fetchRequest: fetchRequest)).first!.gitmojis.count
         XCTAssertTrue(count == .zero)
     }
     

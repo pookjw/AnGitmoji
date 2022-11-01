@@ -7,11 +7,11 @@
         <attribute name="emoji" optional="YES" attributeType="String"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="semver" optional="YES" attributeType="String"/>
-        <relationship name="group" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="GitmojiGroup" inverseName="gitmoji" inverseEntity="GitmojiGroup"/>
+        <relationship name="group" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="GitmojiGroup" inverseName="gitmojis" inverseEntity="GitmojiGroup"/>
     </entity>
     <entity name="GitmojiGroup" representedClassName="AnGitmojiCore.GitmojiGroup" syncable="YES">
         <attribute name="index" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="name" optional="YES" attributeType="String"/>
-        <relationship name="gitmoji" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Gitmoji" inverseName="group" inverseEntity="Gitmoji"/>
+        <relationship name="gitmojis" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Gitmoji" inverseName="group" inverseEntity="Gitmoji"/>
     </entity>
 </model>

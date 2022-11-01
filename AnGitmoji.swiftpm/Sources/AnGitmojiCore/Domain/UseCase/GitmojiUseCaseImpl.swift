@@ -30,6 +30,24 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
         }
     }
     
+    public var didInsertObjectsStream: AsyncStream<Set<NSManagedObject>> {
+        get async throws {
+            return try await gitmojiRepository.didInsertObjectsStream
+        }
+    }
+    
+    public var didUpdateObjectsStream: AsyncStream<Set<NSManagedObject>> {
+        get async throws {
+            return try await gitmojiRepository.didUpdateObjectsStream
+        }
+    }
+    
+    public var didDeleteObjectsStream: AsyncStream<Set<NSManagedObject>> {
+        get async throws {
+            return try await gitmojiRepository.didDeleteObjectsStream
+        }
+    }
+    
     public func conditionSafe<T: Sendable>(block: @Sendable () async throws -> T) async throws -> T {
         return try await gitmojiRepository.conditionSafe(block: block)
     }
@@ -92,15 +110,15 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
     
     public func newGitmoji(to gitmojiGroup: GitmojiGroup, index: Int?) async throws -> Gitmoji {
         try await conditionSafe {
-            if let index: Int, gitmojiGroup.gitmoji.count < index {
+            if let index: Int, gitmojiGroup.gitmojis.count < index {
                 throw AGMError.outOfIndex
             }
             let gitmoji: Gitmoji = try await gitmojiRepository.newGitmoji
             
             if let index: Int {
-                gitmojiGroup.insertIntoGitmoji(gitmoji, at: index)
+                gitmojiGroup.insertIntoGitmojis(gitmoji, at: index)
             } else {
-                gitmojiGroup.addToGitmoji(gitmoji)
+                gitmojiGroup.addToGitmojis(gitmoji)
             }
             
             return gitmoji
@@ -166,11 +184,11 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
                 throw AGMError.noGitmojiGroup
             }
             
-            guard gitmojiGroup.gitmoji.count > index else {
+            guard gitmojiGroup.gitmojis.count > index else {
                 throw AGMError.outOfIndex
             }
             
-            let currentIndex: Int = gitmojiGroup.gitmoji.index(of: gitmoji)
+            let currentIndex: Int = gitmojiGroup.gitmojis.index(of: gitmoji)
             
             guard currentIndex != NSNotFound else {
                 throw AGMError.gotNSNotFound
@@ -180,8 +198,8 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
                  return
             }
             
-            gitmojiGroup.removeFromGitmoji(gitmoji)
-            gitmojiGroup.insertIntoGitmoji(gitmoji, at: index)
+            gitmojiGroup.removeFromGitmojis(gitmoji)
+            gitmojiGroup.insertIntoGitmojis(gitmoji, at: index)
         }
     }
     
@@ -191,7 +209,7 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
     
     public func remove(gitmoji: Gitmoji) async throws {
         try await conditionSafe {
-            gitmoji.group?.removeFromGitmoji(gitmoji)
+            gitmoji.group?.removeFromGitmojis(gitmoji)
             return try await gitmojiRepository.remove(gitmoji: gitmoji)
         }
     }
@@ -210,7 +228,7 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
         for object in gitmojiJSON.gitmojis {
             let gitmoji: Gitmoji = try await gitmojiRepository.newGitmoji
             gitmoji.map(from: object)
-            newGitmojiGroup.addToGitmoji(gitmoji)
+            newGitmojiGroup.addToGitmojis(gitmoji)
         }
         
         try await gitmojiRepository.saveChanges()

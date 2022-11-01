@@ -23,6 +23,10 @@ struct GitmojiGroupDetailView: View {
                     ForEach(viewModel.gitmojis) { gitmoji in
                         TableRow(gitmoji)
                             .contextMenu {
+                                Button("Edit") {
+                                    fatalError("TODO")
+                                }
+                                
                                 Button("Copy") {
                                     tasks.insert(.detached { [viewModel] in
                                         do {
@@ -32,6 +36,8 @@ struct GitmojiGroupDetailView: View {
                                         }
                                     })
                                 }
+                                
+                                Divider()
                                 
                                 Button("Reset Count") {
                                     fatalError("TODO")
