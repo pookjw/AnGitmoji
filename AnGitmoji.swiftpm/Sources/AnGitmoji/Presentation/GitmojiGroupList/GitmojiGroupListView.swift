@@ -10,6 +10,7 @@ struct GitmojiGroupListView: View {
         animation: .default
     ) private var fetchedGitmojiGroups: FetchedResults<GitmojiGroup>
     @ObservedObject private var viewModel: GitmojiGroupListViewModel = .init()
+    @State private var tasks: Set<Task<Void, Never>> = .init()
     
     init(selectedGitmojiGroup: Binding<GitmojiGroup?>) {
         self._selectedGitmojiGroup = selectedGitmojiGroup
@@ -20,9 +21,29 @@ struct GitmojiGroupListView: View {
             ForEach(fetchedGitmojiGroups, id: \.self) { gitmojiGroup in
                 Text("\(gitmojiGroup.name)")
                     .font(.title)
+                    .contextMenu {
+                        Button("Delete") {
+                            tasks.insert(.detached { [viewModel] in
+                                do {
+                                    try await viewModel.remove(gitmojiGroup: gitmojiGroup)
+                                } catch {
+                                    fatalError(error.localizedDescription)
+                                }
+                            })
+                        }
+                    }
             }
             .onDelete { indexSet in
-                
+                indexSet.forEach { index in
+                    let gitmojiGroup: GitmojiGroup = fetchedGitmojiGroups[index]
+                    tasks.insert(.detached { [viewModel] in
+                        do {
+                            try await viewModel.remove(gitmojiGroup: gitmojiGroup)
+                        } catch {
+                            fatalError(error.localizedDescription)
+                        }
+                    })
+                }
             }
             .onMove { indexSet, index in
                 
@@ -36,14 +57,7 @@ struct GitmojiGroupListView: View {
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-                    viewModel.test_removeAll()
-                } label: {
-                    Image(systemName: "ant")
-                }
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    viewModel.test_create()
+//                    viewModel.test_create()
                 } label: {
                     Image(systemName: "plus")
                 }

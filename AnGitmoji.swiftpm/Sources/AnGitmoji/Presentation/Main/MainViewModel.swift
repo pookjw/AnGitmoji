@@ -1,5 +1,5 @@
 import Foundation
-@preconcurrency import SwiftUI
+import SwiftUI
 import Combine
 import CoreData
 import AnGitmojiCore
@@ -7,18 +7,19 @@ import AnGitmojiCore
 final class MainViewModel: ObservableObject, @unchecked Sendable {
     @Published @MainActor private(set) var context: NSManagedObjectContext?
     private let gitmojiUseCase: GitmojiUseCase = DIService.gitmojiUseCase
-    private var loadingContextTask: Task<Void, Never>?
+    private var tasks: Set<Task<Void, Never>> = .init()
     
     deinit {
-        loadingContextTask?.cancel()
+        tasks.forEach { $0.cancel() }
     }
     
     init() {
         loadContext()
+        createDefaultGitmojisGroupIfNeeded()
     }
     
     private func loadContext() {
-        loadingContextTask = .detached { [weak self] in
+        tasks.insert(.detached { [weak self] in
             do {
                 // SwiftUI/FetchCommon.swift:47: Fatal error: Can only use main queue contexts to drive SwiftUI
                 let context: NSManagedObjectContext = .init(concurrencyType: .mainQueueConcurrencyType)
@@ -30,6 +31,16 @@ final class MainViewModel: ObservableObject, @unchecked Sendable {
             } catch {
                 fatalError(error.localizedDescription)
             }
-        }
+        })
+    }
+    
+    private func createDefaultGitmojisGroupIfNeeded() {
+        tasks.insert(.detached { [gitmojiUseCase] in
+            do {
+                try await gitmojiUseCase.createDefaultGitmojiGroupIfNeeded(force: false)
+            } catch {
+                fatalError(error.localizedDescription)
+            }
+        })
     }
 }

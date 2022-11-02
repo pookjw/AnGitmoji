@@ -40,7 +40,14 @@ struct GitmojiGroupDetailView: View {
                                 Divider()
                                 
                                 Button("Reset Count") {
-                                    fatalError("TODO")
+                                    tasks.insert(.detached { [viewModel] in
+                                        do {
+                                            try await viewModel.resetCount(of: gitmoji)
+                                        } catch {
+                                            fatalError("\(error)")
+                                        }
+                                        
+                                    })
                                 }
                             }
                     }

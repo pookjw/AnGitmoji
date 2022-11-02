@@ -1,23 +1,28 @@
 import SwiftUI
 import AnGitmojiCore
 
-final class GitmojiGroupListViewModel: ObservableObject, Sendable {
+final class GitmojiGroupListViewModel: ObservableObject {
     private let gitmojiUseCase: GitmojiUseCase = DIService.gitmojiUseCase
+    private var tasks: Set<Task<Void, Never>> = .init()
     
     init() {
         
     }
     
-    func test_create() {
-        Task {
-            try await gitmojiUseCase.createDefaultGitmojiGroupIfNeeded(force: true)
-            try await gitmojiUseCase.saveChanges()
+    func remove(gitmojiGroup: GitmojiGroup) async throws {
+        guard let gitmojiGroupContext: NSManagedObjectContext = gitmojiGroup.managedObjectContext else {
+            return
         }
-    }
-    
-    func test_removeAll() {
-        Task {
-            try await gitmojiUseCase.removeAllGitmojiGroups()
+        
+        let context: NSManagedObjectContext = try await gitmojiUseCase.context
+        
+        if gitmojiGroupContext == context {
+            try await gitmojiUseCase.remove(gitmojiGroup: gitmojiGroup)
+        } else {
+            gitmojiGroupContext.delete(gitmojiGroup)
+            try gitmojiGroupContext.save()
         }
+        
+        try await gitmojiUseCase.saveChanges()
     }
 }

@@ -42,6 +42,15 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         fatalError("TODO")
     }
     
+    func resetCount(of gitmoji: Gitmoji) async throws {
+        try await gitmojiUseCase.conditionSafe { [gitmojiUseCase] in
+            gitmoji.count = .zero
+            
+            try gitmoji.managedObjectContext?.save()
+            try await gitmojiUseCase.saveChanges()
+        }
+    }
+    
     private nonisolated func bind() {
         Task { [weak self, gitmojiUseCase] in
             // When sortOrders is changed, apply that changes to Data Source (gitmojis).
