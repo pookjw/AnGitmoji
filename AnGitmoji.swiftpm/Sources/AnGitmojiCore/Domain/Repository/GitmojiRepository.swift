@@ -10,6 +10,7 @@ protocol GitmojiRepository: Sendable {
     var newGitmoji: Gitmoji { get async throws }
     func gitmojiGroups(fetchRequest: NSFetchRequest<GitmojiGroup>) async throws -> [GitmojiGroup]
     func gitmojiGroupsCount(fetchRequest: NSFetchRequest<GitmojiGroup>) async throws -> Int
+    func object<T>(with objectID: NSManagedObjectID) async throws -> T where T : NSManagedObject & Sendable
     func remove(gitmojiGroup: GitmojiGroup) async throws
     func remove(gitmoji: Gitmoji) async throws
     func removeAllGitmojiGroups() async throws

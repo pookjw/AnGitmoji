@@ -36,26 +36,23 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         UIPasteboard.general.string = gitmoji.code
         
         try await gitmojiUseCase.conditionSafe { [gitmojiUseCase] in
-            gitmoji.count += 1
-            
-            // Push to parent
-            try gitmoji.managedObjectContext?.save()
+            let gitmojiWithBackgroundContext: Gitmoji = try await gitmojiUseCase.object(with: gitmoji.objectID)
+            gitmojiWithBackgroundContext.count += 1
             
             try await gitmojiUseCase.saveChanges()
         }
     }
     
     func remove(gitmoji: Gitmoji) async throws {
-        try await gitmojiUseCase.remove(gitmoji: gitmoji)
+        let gitmojiWithBackgroundContext: Gitmoji = try await gitmojiUseCase.object(with: gitmoji.objectID)
+        try await gitmojiUseCase.remove(gitmoji: gitmojiWithBackgroundContext)
         try await gitmojiUseCase.saveChanges()
     }
     
     func resetCount(gitmoji: Gitmoji) async throws {
         try await gitmojiUseCase.conditionSafe { [gitmojiUseCase] in
-            gitmoji.count = .zero
-            
-            // Push to parent
-            try gitmoji.managedObjectContext?.save()
+            let gitmojiWithBackgroundContext: Gitmoji = try await gitmojiUseCase.object(with: gitmoji.objectID)
+            gitmojiWithBackgroundContext.count = .zero
             
             try await gitmojiUseCase.saveChanges()
         }
@@ -100,13 +97,12 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
                 throw AGMError.gitmojiWasDeleted
             }
             
-            editingGitmoji.emoji = emoji
-            editingGitmoji.code = code
-            editingGitmoji.name = name
-            editingGitmoji.detail = detail
+            let gitmojiWithBackgroundContext: Gitmoji = try await gitmojiUseCase.object(with: editingGitmoji.objectID)
             
-            // Push to parent
-            try editingGitmoji.managedObjectContext?.save()
+            gitmojiWithBackgroundContext.emoji = emoji
+            gitmojiWithBackgroundContext.code = code
+            gitmojiWithBackgroundContext.name = name
+            gitmojiWithBackgroundContext.detail = detail
             
             try await gitmojiUseCase.saveChanges()
         }
@@ -206,7 +202,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         }
         
         await MainActor.run { [weak self, sortDescriptors] in
-            self?.nsPredicate = predicate
+//            self?.nsPredicate = predicate
             self?.sortDescriptors = sortDescriptors
         }
     }

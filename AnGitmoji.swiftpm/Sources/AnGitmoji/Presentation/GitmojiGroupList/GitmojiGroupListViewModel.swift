@@ -10,7 +10,8 @@ final class GitmojiGroupListViewModel: ObservableObject {
     }
     
     func remove(gitmojiGroup: GitmojiGroup) async throws {
-        try await gitmojiUseCase.remove(gitmojiGroup: gitmojiGroup)
+        let gitmojiGroupWithBackgroundContext: GitmojiGroup = try await gitmojiUseCase.object(with: gitmojiGroup.objectID)
+        try await gitmojiUseCase.remove(gitmojiGroup: gitmojiGroupWithBackgroundContext)
         try await gitmojiUseCase.saveChanges()
     }
     

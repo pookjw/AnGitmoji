@@ -21,6 +21,7 @@ public protocol GitmojiUseCase: Sendable {
     // MARK: - Fetch
     func gitmojiGroups(fetchRequest: NSFetchRequest<GitmojiGroup>?) async throws -> [GitmojiGroup]
     func gitmojiGroupsCount(fetchRequest: NSFetchRequest<GitmojiGroup>?) async throws -> Int
+    func object<T>(with objectID: NSManagedObjectID) async throws -> T where T : NSManagedObject & Sendable
     
     // MARK: - Order
     func move(gitmojiGroup: GitmojiGroup, to index: Int) async throws

@@ -149,6 +149,17 @@ actor GitmojiRepositoryImpl: GitmojiRepository {
         return count
     }
     
+    func object<T>(with objectID: NSManagedObjectID) async throws -> T where T : NSManagedObject & Sendable {
+        let context: NSManagedObjectContext = try await context
+        let result: NSManagedObject = context.object(with: objectID)
+        
+        guard let castedResult: T = result as? T else {
+            throw AGMError.failedToCastType
+        }
+        
+        return castedResult
+    }
+    
     func remove(gitmojiGroup: GitmojiGroup) async throws {
         let container: NSPersistentContainer = try await coreDataDataSource.container(modelName: Self.gitmojiModelName)
         let context: NSManagedObjectContext = try await context
@@ -162,17 +173,11 @@ actor GitmojiRepositoryImpl: GitmojiRepository {
         
         try container.persistentStoreCoordinator.execute(gitmojisDelete, with: context)
         
-        //
-        
-        let gitmojiGroupWithInternalContext: NSManagedObject
-        if gitmojiGroup.managedObjectContext == context {
-            gitmojiGroupWithInternalContext = gitmojiGroup
-        } else {
-            gitmojiGroupWithInternalContext = context.object(with: gitmojiGroup.objectID)
-        }
+        // https://stackoverflow.com/a/35706560/17473716
+        context.refreshAllObjects()
         
         await withCheckedContinuation { continuation in
-            context.delete(gitmojiGroupWithInternalContext)
+            context.delete(gitmojiGroup)
             continuation.resume(with: .success(()))
         }
     }
@@ -180,15 +185,8 @@ actor GitmojiRepositoryImpl: GitmojiRepository {
     func remove(gitmoji: Gitmoji) async throws {
         let context: NSManagedObjectContext = try await context
         
-        let gitmojiWithInternalContext: NSManagedObject
-        if gitmoji.managedObjectContext == context {
-            gitmojiWithInternalContext = gitmoji
-        } else {
-            gitmojiWithInternalContext = context.object(with: gitmoji.objectID)
-        }
-        
         await withCheckedContinuation { continuation in
-            context.delete(gitmojiWithInternalContext)
+            context.delete(gitmoji)
             continuation.resume(with: .success(()))
         }
     }

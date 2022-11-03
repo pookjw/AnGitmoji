@@ -142,6 +142,14 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
         return try await gitmojiRepository.gitmojiGroupsCount(fetchRequest: fetchRequest)
     }
     
+    public func object<T>(with objectID: NSManagedObjectID) async throws -> T where T : NSManagedObject & Sendable {
+        return try await gitmojiRepository.object(with: objectID)
+    }
+    
+    public func object(with objectID: NSManagedObjectID) async throws -> NSManagedObject {
+        return try await gitmojiRepository.object(with: objectID)
+    }
+    
     public func move(gitmojiGroup: GitmojiGroup, to index: Int) async throws {
         try await conditionSafe {
             let currentIndex: Int = gitmojiGroup.index

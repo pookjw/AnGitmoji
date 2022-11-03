@@ -17,6 +17,7 @@ import CoreData
     // MARK: - Fetch
     func gitmojiGroups(fetchRequest: NSFetchRequest<GitmojiGroup>?) async throws -> [GitmojiGroup]
     func gitmojiGroupsCount(fetchRequest: NSFetchRequest<GitmojiGroup>?) async throws -> Int
+    func object(with objectID: NSManagedObjectID) async throws -> NSManagedObject
     
     // MARK: - Order
     func move(gitmojiGroup: GitmojiGroup, to index: Int) async throws
