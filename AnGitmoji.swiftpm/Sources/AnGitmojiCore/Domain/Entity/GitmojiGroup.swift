@@ -1,6 +1,10 @@
 import CoreData
 
 public final class GitmojiGroup: NSManagedObject, @unchecked Sendable {
+    public static var fetchRequest: NSFetchRequest<GitmojiGroup> {
+        return .init(entityName: "GitmojiGroup")
+    }
+    
     @NSManaged public internal(set) var index: Int
     @NSManaged public var name: String
     @NSManaged public internal(set) var gitmojis: NSOrderedSet

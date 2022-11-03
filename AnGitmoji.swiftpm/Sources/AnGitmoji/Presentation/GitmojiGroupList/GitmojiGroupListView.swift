@@ -67,7 +67,9 @@ struct GitmojiGroupListView: View {
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
-//                    viewModel.test_create()
+                    tasks.insert(.detached { [viewModel] in
+                        try! await viewModel.test_create()
+                    })
                 } label: {
                     Image(systemName: "plus")
                 }

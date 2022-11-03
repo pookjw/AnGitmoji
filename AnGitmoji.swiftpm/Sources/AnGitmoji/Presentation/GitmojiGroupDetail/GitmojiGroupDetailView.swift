@@ -2,14 +2,15 @@ import SwiftUI
 import AnGitmojiCore
 
 struct GitmojiGroupDetailView: View {
+    @FetchRequest(sortDescriptors: []) private var fetchedGitmojis: FetchedResults<Gitmoji>
     @Environment(\.selectedGitmojiGroup) private var selectedGitmojiGroup: GitmojiGroup?
     @StateObject private var viewModel: GitmojiGroupDetailViewModel = .init()
     @State private var tasks: Set<Task<Void, Never>> = .init()
-    
+    @State private var predicate: NSPredicate = .init()
     var body: some View {
         Group {
             if let selectedGitmojiGroup: GitmojiGroup {
-                Table(selection: $viewModel.selectedGitmojis, sortOrder: $viewModel.sortOrders) {
+                Table(selection: $viewModel.selectedGitmojis, sortOrder: $viewModel.keyPathComparators) {
                     TableColumn("Emoji", value: \.emoji)
                     TableColumn("Code", value: \.code)
                     TableColumn("Description", value: \.detail) { gitmoji in
@@ -20,7 +21,7 @@ struct GitmojiGroupDetailView: View {
                         Text("\(gitmoji.count)")
                     }
                 } rows: {
-                    ForEach(viewModel.gitmojis) { gitmoji in
+                    ForEach(fetchedGitmojis) { gitmoji in
                         TableRow(gitmoji)
                             .contextMenu {
                                 Button("Edit") {
@@ -61,20 +62,21 @@ struct GitmojiGroupDetailView: View {
             }
         }
         .onChange(of: selectedGitmojiGroup) { newValue in
-            update(using: newValue)
+            tasks.forEach { $0.cancel() }
+            tasks.removeAll()
+            viewModel.selectedGitmojiGroup = newValue
+        }
+        .onChange(of: viewModel.nsPredicate) { newValue in
+            fetchedGitmojis.nsPredicate = newValue
+        }
+        .onChange(of: viewModel.sortDescriptors) { newValue in
+            fetchedGitmojis.sortDescriptors = newValue
         }
         .toolbar {
             Button("Test") {
                 
             }
         }
-    }
-    
-    private func update(using selectedGitmojiGroup: GitmojiGroup?) {
-        tasks = .init()
-        tasks.insert(.detached { [viewModel] in
-            await viewModel.update(using: selectedGitmojiGroup)
-        })
     }
 }
 

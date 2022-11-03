@@ -38,6 +38,7 @@ final class MainViewModel: ObservableObject, @unchecked Sendable {
         tasks.insert(.detached { [gitmojiUseCase] in
             do {
                 try await gitmojiUseCase.createDefaultGitmojiGroupIfNeeded(force: false)
+                try await gitmojiUseCase.saveChanges()
             } catch {
                 fatalError(error.localizedDescription)
             }

@@ -10,23 +10,16 @@ final class GitmojiGroupListViewModel: ObservableObject {
     }
     
     func remove(gitmojiGroup: GitmojiGroup) async throws {
-        guard let gitmojiGroupContext: NSManagedObjectContext = gitmojiGroup.managedObjectContext else {
-            return
-        }
-        
-        let context: NSManagedObjectContext = try await gitmojiUseCase.context
-        
-        if gitmojiGroupContext == context {
-            try await gitmojiUseCase.remove(gitmojiGroup: gitmojiGroup)
-        } else {
-            gitmojiGroupContext.delete(gitmojiGroup)
-            try gitmojiGroupContext.save()
-        }
-        
+        try await gitmojiUseCase.remove(gitmojiGroup: gitmojiGroup)
         try await gitmojiUseCase.saveChanges()
     }
     
     func test_removeAllGitmojiGroups() async throws {
         try await gitmojiUseCase.removeAllGitmojiGroups()
+    }
+    
+    func test_create() async throws {
+        try await gitmojiUseCase.createDefaultGitmojiGroupIfNeeded(force: true)
+        try await gitmojiUseCase.saveChanges()
     }
 }

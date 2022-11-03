@@ -15,11 +15,6 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
         }
     }
     
-    public var fetchRequest: NSFetchRequest<GitmojiGroup> {
-        let fetchRequest: NSFetchRequest<GitmojiGroup> = .init(entityName: "GitmojiGroup")
-        return fetchRequest
-    }
-    
     public func context() async throws -> NSManagedObjectContext {
         return try await context
     }
@@ -62,7 +57,7 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
     
     public func createDefaultGitmojiGroupIfNeeded(force: Bool) async throws -> Bool {
         try await conditionSafe {
-            let fetchRequest: NSFetchRequest<GitmojiGroup> = fetchRequest
+            let fetchRequest: NSFetchRequest<GitmojiGroup> = GitmojiGroup.fetchRequest
             fetchRequest.includesSubentities = true
             fetchRequest.includesPendingChanges = true
             let count: Int = try await gitmojiRepository.gitmojiGroupsCount(fetchRequest: fetchRequest)
@@ -91,7 +86,7 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
     public var newGitmojiGroup: GitmojiGroup {
         get async throws {
             try await conditionSafe {
-                let fetchRequest: NSFetchRequest<GitmojiGroup> = fetchRequest
+                let fetchRequest: NSFetchRequest<GitmojiGroup> = GitmojiGroup.fetchRequest
                 fetchRequest.includesSubentities = true
                 fetchRequest.includesPendingChanges = true
                 let count: Int = try await gitmojiRepository.gitmojiGroupsCount(fetchRequest: fetchRequest)
@@ -134,7 +129,7 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
     }
     
     public func gitmojiGroups(fetchRequest: NSFetchRequest<GitmojiGroup>?) async throws -> [GitmojiGroup] {
-        let fetchRequest: NSFetchRequest<GitmojiGroup> = fetchRequest ?? self.fetchRequest
+        let fetchRequest: NSFetchRequest<GitmojiGroup> = fetchRequest ?? GitmojiGroup.fetchRequest
         let sortDescriptor: NSSortDescriptor = .init(key: #keyPath(GitmojiGroup.index), ascending: true)
         fetchRequest.sortDescriptors = [sortDescriptor]
         
@@ -142,7 +137,7 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
     }
     
     public func gitmojiGroupsCount(fetchRequest: NSFetchRequest<GitmojiGroup>?) async throws -> Int {
-        let fetchRequest: NSFetchRequest<GitmojiGroup> = fetchRequest ?? self.fetchRequest
+        let fetchRequest: NSFetchRequest<GitmojiGroup> = fetchRequest ?? GitmojiGroup.fetchRequest
         fetchRequest.includesSubentities = true
         return try await gitmojiRepository.gitmojiGroupsCount(fetchRequest: fetchRequest)
     }

@@ -46,6 +46,8 @@ actor LocalCoreData: CoreDataDataSource {
         
         let container: NSPersistentContainer = try await container(modelName: modelName)
         let context: NSManagedObjectContext = container.newBackgroundContext()
+        context.automaticallyMergesChangesFromParent = true
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         
         contexts[modelName] = context
         

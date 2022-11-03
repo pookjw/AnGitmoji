@@ -3,7 +3,6 @@ import CoreData
 public protocol GitmojiUseCase: Sendable {
     // MARK: - Core Data Properties
     var context: NSManagedObjectContext { get async throws }
-    var fetchRequest: NSFetchRequest<GitmojiGroup> { get }
     
     // MARK: - Others
     var didSaveStream: AsyncStream<Void> { get async throws }

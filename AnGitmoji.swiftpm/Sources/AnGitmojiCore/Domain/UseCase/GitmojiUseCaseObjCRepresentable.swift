@@ -3,7 +3,6 @@ import CoreData
 @objc(GitmojiUseCase) public protocol GitmojiUseCaseObjCRepresentable: AnyObject, Sendable {
     // MARK: - Core Data Properties
     func context() async throws -> NSManagedObjectContext
-    var fetchRequest: NSFetchRequest<GitmojiGroup> { get }
     
     // MARK: - Others
     @objc(conditionSafeWithBlock:completionHandler:) func _conditionSafe(block: @Sendable @escaping () -> Void) async
