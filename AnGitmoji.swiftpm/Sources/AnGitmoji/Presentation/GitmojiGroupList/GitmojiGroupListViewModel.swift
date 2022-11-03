@@ -25,4 +25,8 @@ final class GitmojiGroupListViewModel: ObservableObject {
         
         try await gitmojiUseCase.saveChanges()
     }
+    
+    func test_removeAllGitmojiGroups() async throws {
+        try await gitmojiUseCase.removeAllGitmojiGroups()
+    }
 }

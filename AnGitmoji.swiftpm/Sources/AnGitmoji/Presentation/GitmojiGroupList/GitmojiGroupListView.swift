@@ -57,6 +57,16 @@ struct GitmojiGroupListView: View {
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
+                    tasks.insert(.detached { [viewModel] in
+                        try! await viewModel.test_removeAllGitmojiGroups()
+                        exit(0)
+                    })
+                } label: {
+                    Image(systemName: "trash")
+                }
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
 //                    viewModel.test_create()
                 } label: {
                     Image(systemName: "plus")
