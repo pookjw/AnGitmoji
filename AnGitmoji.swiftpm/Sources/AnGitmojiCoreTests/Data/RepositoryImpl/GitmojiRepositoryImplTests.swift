@@ -4,10 +4,6 @@ import CoreData
 
 final class GitmojiRepositoryImplTests: XCTestCase, @unchecked Sendable {
     private var gitmojiRepositoryImpl: GitmojiRepositoryImpl!
-    private var fetchRequest: NSFetchRequest<GitmojiGroup> {
-        let fetchRequest: NSFetchRequest<GitmojiGroup> = .init(entityName: "GitmojiGroup")
-        return fetchRequest
-    }
     
     override func setUp() async throws {
         let gitmojiRepositoryImpl: GitmojiRepositoryImpl = .shared
@@ -134,12 +130,20 @@ final class GitmojiRepositoryImplTests: XCTestCase, @unchecked Sendable {
         let gitmojiGroup: GitmojiGroup = try await gitmojiRepositoryImpl.newGitmojiGroup
         try await gitmojiRepositoryImpl.saveChanges()
         
-        let gitmojiGroups: [GitmojiGroup] = try await gitmojiRepositoryImpl.gitmojiGroups(fetchRequest: fetchRequest)
+        let gitmojiGroups: [GitmojiGroup] = try await gitmojiRepositoryImpl.gitmojiGroups(fetchRequest: GitmojiGroup.fetchRequest)
         XCTAssertTrue(gitmojiGroups.contains(gitmojiGroup))
+    }
+    
+    func testObjectWithObjectID() async throws {
+        let gitmojiGroup: GitmojiGroup = try await gitmojiRepositoryImpl.newGitmojiGroup
+        try await gitmojiRepositoryImpl.saveChanges()
+        
+        let fetchedGitmojiGroup: GitmojiGroup = try await gitmojiRepositoryImpl.object(with: gitmojiGroup.objectID)
+        XCTAssertEqual(gitmojiGroup.objectID, fetchedGitmojiGroup.objectID)
     }
 
     func testGitmojiGroupsCountZero() async throws {
-        let count: Int = try await gitmojiRepositoryImpl.gitmojiGroupsCount(fetchRequest: fetchRequest)
+        let count: Int = try await gitmojiRepositoryImpl.gitmojiGroupsCount(fetchRequest: GitmojiGroup.fetchRequest)
         XCTAssertTrue(count == .zero)
     }
     
@@ -147,17 +151,27 @@ final class GitmojiRepositoryImplTests: XCTestCase, @unchecked Sendable {
         let _: GitmojiGroup = try await gitmojiRepositoryImpl.newGitmojiGroup
         try await gitmojiRepositoryImpl.saveChanges()
         
-        let count: Int = try await gitmojiRepositoryImpl!.gitmojiGroupsCount(fetchRequest: fetchRequest)
+        let count: Int = try await gitmojiRepositoryImpl!.gitmojiGroupsCount(fetchRequest: GitmojiGroup.fetchRequest)
         XCTAssertTrue(count == 1)
     }
     
     func testRemoveGitmojiGroup() async throws {
         let gitmojiGroup: GitmojiGroup = try await gitmojiRepositoryImpl.newGitmojiGroup
+        let gitmoji: Gitmoji = try await gitmojiRepositoryImpl.newGitmoji
+        
+        gitmojiGroup.addToGitmojis(gitmoji)
         try await gitmojiRepositoryImpl.saveChanges()
+        
         try await gitmojiRepositoryImpl.remove(gitmojiGroup: gitmojiGroup)
         try await gitmojiRepositoryImpl.saveChanges()
-        let count: Int = try await gitmojiRepositoryImpl.gitmojiGroupsCount(fetchRequest: fetchRequest)
-        XCTAssertTrue(count == .zero)
+        
+        let context: NSManagedObjectContext = try await gitmojiRepositoryImpl.context
+        
+        let gitmojiGroupCount: Int = try await gitmojiRepositoryImpl.gitmojiGroupsCount(fetchRequest: GitmojiGroup.fetchRequest)
+        let gitmojiCount: Int = try context.count(for: Gitmoji.fetchRequest)
+        
+        XCTAssertTrue(gitmojiGroupCount == .zero)
+        XCTAssertTrue(gitmojiCount == .zero)
     }
     
     func testRemoveGitmoji() async throws {
@@ -167,7 +181,7 @@ final class GitmojiRepositoryImplTests: XCTestCase, @unchecked Sendable {
         try await gitmojiRepositoryImpl.saveChanges()
         try await gitmojiRepositoryImpl.remove(gitmoji: gitmoji)
         try await gitmojiRepositoryImpl.saveChanges()
-        let count: Int = (try await gitmojiRepositoryImpl.gitmojiGroups(fetchRequest: fetchRequest)).first!.gitmojis.count
+        let count: Int = (try await gitmojiRepositoryImpl.gitmojiGroups(fetchRequest: GitmojiGroup.fetchRequest)).first!.gitmojis.count
         XCTAssertTrue(count == .zero)
     }
     
@@ -175,7 +189,7 @@ final class GitmojiRepositoryImplTests: XCTestCase, @unchecked Sendable {
         let _: GitmojiGroup = try await gitmojiRepositoryImpl.newGitmojiGroup
         try await gitmojiRepositoryImpl.saveChanges()
         try await gitmojiRepositoryImpl.removeAllGitmojiGroups()
-        let count: Int = try await gitmojiRepositoryImpl.gitmojiGroupsCount(fetchRequest: fetchRequest)
+        let count: Int = try await gitmojiRepositoryImpl.gitmojiGroupsCount(fetchRequest: GitmojiGroup.fetchRequest)
         XCTAssertTrue(count == .zero)
     }
 }

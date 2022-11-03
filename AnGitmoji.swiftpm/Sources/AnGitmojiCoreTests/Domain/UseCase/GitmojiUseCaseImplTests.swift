@@ -213,6 +213,14 @@ final class GitmojiUseCaseImplTests: XCTestCase, @unchecked Sendable {
         XCTAssertTrue(gitmojiGroups.contains(gitmojiGroup))
     }
     
+    func testObjectWithObjectID() async throws {
+        let gitmojiGroup: GitmojiGroup = try await gitmojiUseCaseImpl.newGitmojiGroup
+        try await gitmojiUseCaseImpl.saveChanges()
+        
+        let fetchedGitmojiGroup: GitmojiGroup = try await gitmojiUseCaseImpl.object(with: gitmojiGroup.objectID)
+        XCTAssertEqual(gitmojiGroup.objectID, fetchedGitmojiGroup.objectID)
+    }
+    
     func testGitmojiGroupsCountZero() async throws {
         let count: Int = try await gitmojiUseCaseImpl.gitmojiGroupsCount(fetchRequest: nil)
         XCTAssertTrue(count == .zero)
@@ -293,13 +301,19 @@ final class GitmojiUseCaseImplTests: XCTestCase, @unchecked Sendable {
     
     func testRemoveGitmojiGroup() async throws {
         let gitmojiGroup: GitmojiGroup = try await gitmojiUseCaseImpl.newGitmojiGroup
-        try await gitmojiUseCaseImpl.saveChanges()
+        let _: Gitmoji = try await gitmojiUseCaseImpl.newGitmoji(to: gitmojiGroup, index: nil)
         
+        try await gitmojiUseCaseImpl.saveChanges()
         try await gitmojiUseCaseImpl.remove(gitmojiGroup: gitmojiGroup)
         try await gitmojiUseCaseImpl.saveChanges()
         
-        let count: Int = try await gitmojiUseCaseImpl.gitmojiGroupsCount(fetchRequest: nil)
-        XCTAssertTrue(count == .zero)
+        let context: NSManagedObjectContext = try await gitmojiUseCaseImpl.context
+        
+        let gitmojiGroupCount: Int = try await gitmojiUseCaseImpl.gitmojiGroupsCount(fetchRequest: GitmojiGroup.fetchRequest)
+        let gitmojiCount: Int = try context.count(for: Gitmoji.fetchRequest)
+        
+        XCTAssertTrue(gitmojiGroupCount == .zero)
+        XCTAssertTrue(gitmojiCount == .zero)
     }
     
     func testRemoveGitmoji() async throws {
