@@ -37,6 +37,10 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         
         try await gitmojiUseCase.conditionSafe { [gitmojiUseCase] in
             gitmoji.count += 1
+            
+            // Push to parent
+            try gitmoji.managedObjectContext?.save()
+            
             try await gitmojiUseCase.saveChanges()
         }
     }
@@ -49,6 +53,10 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
     func resetCount(gitmoji: Gitmoji) async throws {
         try await gitmojiUseCase.conditionSafe { [gitmojiUseCase] in
             gitmoji.count = .zero
+            
+            // Push to parent
+            try gitmoji.managedObjectContext?.save()
+            
             try await gitmojiUseCase.saveChanges()
         }
     }
@@ -96,6 +104,9 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
             editingGitmoji.code = code
             editingGitmoji.name = name
             editingGitmoji.detail = detail
+            
+            // Push to parent
+            try editingGitmoji.managedObjectContext?.save()
             
             try await gitmojiUseCase.saveChanges()
         }
