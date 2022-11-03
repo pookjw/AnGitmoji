@@ -202,7 +202,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         }
         
         await MainActor.run { [weak self, sortDescriptors] in
-//            self?.nsPredicate = predicate
+            self?.nsPredicate = predicate
             self?.sortDescriptors = sortDescriptors
         }
     }
