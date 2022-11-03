@@ -25,6 +25,7 @@ final class MainViewModel: ObservableObject, @unchecked Sendable {
                 let context: NSManagedObjectContext = .init(concurrencyType: .mainQueueConcurrencyType)
                 context.parent = try await self?.gitmojiUseCase.context
                 context.automaticallyMergesChangesFromParent = true
+                context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
                 await MainActor.run { [weak self, context] in
                     self?.context = context
                 }

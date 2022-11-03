@@ -164,16 +164,33 @@ actor GitmojiRepositoryImpl: GitmojiRepository {
         
         //
         
-        guard let gitmojiGroupWithInternalContext: GitmojiGroup = context.object(with: gitmojiGroup.objectID) as? GitmojiGroup else {
-            throw AGMError.unexpectedNilValue
+        let gitmojiGroupWithInternalContext: NSManagedObject
+        if gitmojiGroup.managedObjectContext == context {
+            gitmojiGroupWithInternalContext = gitmojiGroup
+        } else {
+            gitmojiGroupWithInternalContext = context.object(with: gitmojiGroup.objectID)
         }
         
-        context.delete(gitmojiGroupWithInternalContext)
+        await withCheckedContinuation { continuation in
+            context.delete(gitmojiGroupWithInternalContext)
+            continuation.resume(with: .success(()))
+        }
     }
     
     func remove(gitmoji: Gitmoji) async throws {
         let context: NSManagedObjectContext = try await context
-        context.delete(gitmoji)
+        
+        let gitmojiWithInternalContext: NSManagedObject
+        if gitmoji.managedObjectContext == context {
+            gitmojiWithInternalContext = gitmoji
+        } else {
+            gitmojiWithInternalContext = context.object(with: gitmoji.objectID)
+        }
+        
+        await withCheckedContinuation { continuation in
+            context.delete(gitmojiWithInternalContext)
+            continuation.resume(with: .success(()))
+        }
     }
     
     func removeAllGitmojiGroups() async throws {

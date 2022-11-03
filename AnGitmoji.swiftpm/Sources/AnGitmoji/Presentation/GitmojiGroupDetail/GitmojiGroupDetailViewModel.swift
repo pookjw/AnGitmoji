@@ -26,26 +26,23 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         tasks.forEach { $0.cancel() }
     }
     
-    func copy(from gitmoji: Gitmoji) async throws {
+    func copy(gitmoji: Gitmoji) async throws {
         UIPasteboard.general.string = gitmoji.code
         
         try await gitmojiUseCase.conditionSafe { [gitmojiUseCase] in
             gitmoji.count += 1
-            
-            try gitmoji.managedObjectContext?.save()
             try await gitmojiUseCase.saveChanges()
         }
     }
     
-    func delete(at indexSet: IndexSet) async throws {
-        fatalError("TODO")
+    func remove(gitmoji: Gitmoji) async throws {
+        try await gitmojiUseCase.remove(gitmoji: gitmoji)
+        try await gitmojiUseCase.saveChanges()
     }
     
-    func resetCount(of gitmoji: Gitmoji) async throws {
+    func resetCount(gitmoji: Gitmoji) async throws {
         try await gitmojiUseCase.conditionSafe { [gitmojiUseCase] in
             gitmoji.count = .zero
-            
-            try gitmoji.managedObjectContext?.save()
             try await gitmojiUseCase.saveChanges()
         }
     }

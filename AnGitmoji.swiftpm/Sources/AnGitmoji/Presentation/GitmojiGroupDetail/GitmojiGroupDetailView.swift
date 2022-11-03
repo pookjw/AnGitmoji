@@ -31,7 +31,17 @@ struct GitmojiGroupDetailView: View {
                                 Button("Copy") {
                                     tasks.insert(.detached { [viewModel] in
                                         do {
-                                            try await viewModel.copy(from: gitmoji)
+                                            try await viewModel.copy(gitmoji: gitmoji)
+                                        } catch {
+                                            fatalError("\(error)")
+                                        }
+                                    })
+                                }
+                                
+                                Button("Delete") {
+                                    tasks.insert(.detached { [viewModel] in
+                                        do {
+                                            try await viewModel.remove(gitmoji: gitmoji)
                                         } catch {
                                             fatalError("\(error)")
                                         }
@@ -43,7 +53,7 @@ struct GitmojiGroupDetailView: View {
                                 Button("Reset Count") {
                                     tasks.insert(.detached { [viewModel] in
                                         do {
-                                            try await viewModel.resetCount(of: gitmoji)
+                                            try await viewModel.resetCount(gitmoji: gitmoji)
                                         } catch {
                                             fatalError("\(error)")
                                         }
