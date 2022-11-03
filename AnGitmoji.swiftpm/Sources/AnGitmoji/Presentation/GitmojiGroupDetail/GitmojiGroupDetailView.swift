@@ -7,13 +7,6 @@ struct GitmojiGroupDetailView: View {
     @StateObject private var viewModel: GitmojiGroupDetailViewModel = .init()
     @State private var tasks: Set<Task<Void, Never>> = .init()
     
-    @State private var isPresentedEditAlert: Bool = false
-    @State private var editingGitmoji: Gitmoji?
-    @State private var editingGitmojiEmoji: String = ""
-    @State private var editingGitmojiCode: String = ""
-    @State private var editingGitmojiName: String = ""
-    @State private var editingGitmojiDetail: String = ""
-    
     var body: some View {
         Group {
             if let selectedGitmojiGroup: GitmojiGroup = viewModel.selectedGitmojiGroup {
@@ -33,7 +26,13 @@ struct GitmojiGroupDetailView: View {
                         TableRow(gitmoji)
                             .contextMenu {
                                 Button("Edit") {
-                                    presentEditAlert(gitmoji: gitmoji)
+                                    tasks.insert(.detached { [viewModel] in
+                                        do {
+                                            try await viewModel.prepareEditAlert(gitmoji: gitmoji)
+                                        } catch {
+                                            fatalError("\(error)")
+                                        }
+                                    })
                                 }
                                 
                                 Button("Copy") {
@@ -90,57 +89,31 @@ struct GitmojiGroupDetailView: View {
         .onChange(of: viewModel.sortDescriptors) { newValue in
             fetchedGitmojis.sortDescriptors = newValue
         }
-        .alert("Edit Gitmoji", isPresented: $isPresentedEditAlert) {
-            TextField("Enter emoji here...", text: $editingGitmojiEmoji)
-            TextField("Enter code here...", text: $editingGitmojiCode)
-            TextField("Enter name here...", text: $editingGitmojiName)
-            TextField("Enter detail here...", text: $editingGitmojiDetail)
+        .alert("Edit Gitmoji", isPresented: $viewModel.isPresentedEditAlert) {
+            TextField("Enter emoji here...", text: $viewModel.editingGitmojiEmoji)
+            TextField("Enter code here...", text: $viewModel.editingGitmojiCode)
+            TextField("Enter name here...", text: $viewModel.editingGitmojiName)
+            TextField("Enter detail here...", text: $viewModel.editingGitmojiDetail)
             
             Button("OK", role: .cancel) {
-                tasks.insert(.detached { [viewModel, editingGitmoji, editingGitmojiEmoji, editingGitmojiCode, editingGitmojiName, editingGitmojiDetail] in
+                tasks.insert(.detached { [viewModel] in
                     do {
-                        guard let editingGitmoji: Gitmoji else {
-                            fatalError()
-                        }
-                        
-                        try await viewModel.edit(
-                            gitmoji: editingGitmoji,
-                            emoji: editingGitmojiEmoji,
-                            code: editingGitmojiCode,
-                            name: editingGitmojiName,
-                            detail: editingGitmojiDetail
-                        )
+                        try await viewModel.endEditAlert(finished: true)
                     } catch {
                         fatalError("\(error)")
                     }
                 })
-                
-                clearEditAlertGitmoji()
             }
             
-            Button("Cancel", role: .destructive) {
-                clearEditAlertGitmoji()
+            Button("Cancel", role: .destructive) {tasks.insert(.detached { [viewModel] in
+                do {
+                    try await viewModel.endEditAlert(finished: false)
+                } catch {
+                    fatalError("\(error)")
+                }
+            })
             }
-        } message: {
-            Text(String(describing: editingGitmoji?.objectID))
         }
-    }
-    
-    private func presentEditAlert(gitmoji: Gitmoji) {
-        editingGitmoji = gitmoji
-        editingGitmojiEmoji = gitmoji.emoji
-        editingGitmojiCode = gitmoji.code
-        editingGitmojiName = gitmoji.name
-        editingGitmojiDetail = gitmoji.detail
-        isPresentedEditAlert = true
-    }
-    
-    private func clearEditAlertGitmoji() {
-        editingGitmoji = nil
-        editingGitmojiEmoji = ""
-        editingGitmojiCode = ""
-        editingGitmojiName = ""
-        editingGitmojiDetail = ""
     }
 }
 
