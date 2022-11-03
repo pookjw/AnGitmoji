@@ -47,8 +47,23 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         }
     }
     
+    func edit(gitmoji: Gitmoji, emoji: String, code: String, name: String, detail: String) async throws {
+        try await gitmojiUseCase.conditionSafe { [gitmojiUseCase] in
+            guard gitmoji.managedObjectContext != nil else {
+                throw AGMError.gitmojiWasDeleted
+            }
+            
+            gitmoji.emoji = emoji
+            gitmoji.code = code
+            gitmoji.name = name
+            gitmoji.detail = detail
+            
+            try await gitmojiUseCase.saveChanges()
+        }
+    }
+    
     private nonisolated func bind() {
-        Task { [weak self] in
+        Task { [weak self, gitmojiUseCase] in
             // When selectedGitmojiGroup is updated, load the Data Source.
             await self?.insert(task: .detached { [weak self] in
                 guard let selectedGitmojiGroupPublisher: Published<GitmojiGroup?>.Publisher = await self?.$selectedGitmojiGroup else {
@@ -70,6 +85,25 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
                     await self?.updateGitmojis()
                 }
             })
+            
+            // Detect when selectedGitmojiGroup is deleted.
+            await self?.insert(task: .detached { [weak self, gitmojiUseCase] in
+                do {
+                    for await deletedObjects in try await gitmojiUseCase.didDeleteObjectsStream {
+                        let selectedGitmojiGroup: GitmojiGroup? = await self?.selectedGitmojiGroup
+                        
+                        if deletedObjects.contains(where: { deletedObject in
+                            return deletedObject.objectID == selectedGitmojiGroup?.objectID
+                        }) {
+                            await MainActor.run { [weak self] in
+                                self?.selectedGitmojiGroup = nil
+                            }
+                        }
+                    }
+                } catch {
+                    fatalError("\(error.localizedDescription)")
+                }
+            })
         }
     }
     
@@ -86,6 +120,8 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
             switch keyPathComparator.keyPath {
             case \.emoji:
                 return .init(\.emoji, order: keyPathComparator.order)
+            case \.name:
+                return .init(\.name, order: keyPathComparator.order)
             case \.code:
                 hasCodeSortDescriptor = true
                 return .init(\.code, order: keyPathComparator.order)

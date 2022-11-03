@@ -62,7 +62,7 @@ struct GitmojiGroupListView: View {
                         exit(0)
                     })
                 } label: {
-                    Image(systemName: "trash")
+                    Image(systemName: "ant")
                 }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
