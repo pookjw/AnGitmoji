@@ -19,7 +19,7 @@
 }
 
 - (void)setAttributes {
-    [self setSystemSymbolName:@"pencil.circle" accessibilityDescription:nil];
+    [self setSystemSymbolName:@"face.smiling" accessibilityDescription:nil];
 }
 
 - (void)configureGitmojiUseCase {

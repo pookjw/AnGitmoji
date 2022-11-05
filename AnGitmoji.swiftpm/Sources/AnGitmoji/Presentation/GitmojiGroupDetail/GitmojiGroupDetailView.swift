@@ -2,14 +2,20 @@ import SwiftUI
 import AnGitmojiCore
 
 struct GitmojiGroupDetailView: View {
-    @FetchRequest(sortDescriptors: []) private var fetchedGitmojis: FetchedResults<Gitmoji>
+    @FetchRequest(
+        sortDescriptors: [],
+        // When change of selectedGitmojiGroup is detected, there's no predicate in short time.
+        // During that time, this view will show all Gitmoji objects without filtering. Below code will prevent it.
+        predicate: NSPredicate(value: false),
+        animation: .default
+    ) private var fetchedGitmojis: FetchedResults<Gitmoji>
     @Environment(\.selectedGitmojiGroup) private var selectedGitmojiGroup: GitmojiGroup?
     @StateObject private var viewModel: GitmojiGroupDetailViewModel = .init()
     @State private var tasks: Set<Task<Void, Never>> = .init()
     
     var body: some View {
         Group {
-            if let selectedGitmojiGroup: GitmojiGroup = viewModel.selectedGitmojiGroup {
+            if viewModel.selectedGitmojiGroup != nil {
                 Table(selection: $viewModel.selectedGitmojis, sortOrder: $viewModel.keyPathComparators) {
                     TableColumn("Emoji", value: \Gitmoji.emoji)
                     TableColumn("Name", value: \Gitmoji.name)
@@ -27,11 +33,7 @@ struct GitmojiGroupDetailView: View {
                             .contextMenu {
                                 Button("Edit") {
                                     tasks.insert(.detached { [viewModel] in
-                                        do {
-                                            try await viewModel.prepareEditAlert(gitmoji: gitmoji)
-                                        } catch {
-                                            fatalError("\(error)")
-                                        }
+                                        await viewModel.prepareEditAlert(gitmoji: gitmoji)
                                     })
                                 }
                                 
@@ -70,9 +72,9 @@ struct GitmojiGroupDetailView: View {
                             }
                     }
                 }
-                    .navigationTitle(selectedGitmojiGroup.name)
+                .navigationTitle("\(selectedGitmojiGroup?.name ?? "")")
 #if os(macOS) || targetEnvironment(macCatalyst)
-                    .navigationSubtitle("\(viewModel.gitmojis.count) items")
+                .navigationSubtitle("\(viewModel.gitmojis.count) gitmojis")
 #endif
             } else {
                 Text("No Selection")
@@ -83,12 +85,14 @@ struct GitmojiGroupDetailView: View {
             tasks.removeAll()
             viewModel.selectedGitmojiGroup = newValue
         }
-        .onChange(of: viewModel.nsPredicate) { newValue in
+        .onReceive(viewModel.nsPredicate.publisher) { newValue in
             fetchedGitmojis.nsPredicate = newValue
         }
-        .onChange(of: viewModel.sortDescriptors) { newValue in
-            fetchedGitmojis.sortDescriptors = newValue
+        .onReceive(viewModel.sortDescriptors.publisher) { newValue in
+//            fetchedGitmojis.sortDescriptors = newValue
+            viewModel.sortDescriptors.pu
         }
+        .searchable(text: $viewModel.searchingText)
         .alert("Edit Gitmoji", isPresented: $viewModel.isPresentedEditAlert) {
             TextField("Enter emoji here...", text: $viewModel.editingGitmojiEmoji)
             TextField("Enter code here...", text: $viewModel.editingGitmojiCode)
@@ -105,13 +109,14 @@ struct GitmojiGroupDetailView: View {
                 })
             }
             
-            Button("Cancel", role: .destructive) {tasks.insert(.detached { [viewModel] in
-                do {
-                    try await viewModel.endEditAlert(finished: false)
-                } catch {
-                    fatalError("\(error)")
-                }
-            })
+            Button("Cancel", role: .destructive) {
+                tasks.insert(.detached { [viewModel] in
+                    do {
+                        try await viewModel.endEditAlert(finished: false)
+                    } catch {
+                        fatalError("\(error)")
+                    }
+                })
             }
         }
     }

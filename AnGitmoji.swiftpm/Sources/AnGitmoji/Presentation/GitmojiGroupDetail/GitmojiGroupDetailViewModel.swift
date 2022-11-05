@@ -10,6 +10,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         // TODO: Need to save
         .init(\.code, order: .forward)
     ]
+    @Published @MainActor var searchingText: String = ""
     @Published @MainActor var isPresentedEditAlert: Bool = false
     @Published @MainActor var editingGitmoji: Gitmoji?
     @Published @MainActor var editingGitmojiEmoji: String = ""
@@ -205,6 +206,14 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
             self?.nsPredicate = predicate
             self?.sortDescriptors = sortDescriptors
         }
+    }
+    
+    private func updateNSPredicate() async {
+        
+    }
+    
+    private func updateSortDescriptors() async {
+        
     }
     
     @MainActor private func clearEditAlertData() {
