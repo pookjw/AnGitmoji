@@ -20,6 +20,8 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
     @Published @MainActor private(set) var gitmojis: [Gitmoji] = []
     @Published @MainActor private(set) var sortDescriptors: [SortDescriptor<Gitmoji>] = []
     @Published @MainActor private(set) var nsPredicate: NSPredicate = .init(value: false)
+    @Published @MainActor private(set) var selectedGitmojiGroupName: String?
+    @Published @MainActor private(set) var selectedGitmojiGroupCount: Int?
     private var editingGitmoji: Gitmoji?
     
     private let gitmojiUseCase: GitmojiUseCase = DIService.gitmojiUseCase
@@ -137,6 +139,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
                 
                 for await _ in selectedGitmojiGroupPublisher.values {
                     await self?.updateNSPredicate()
+                    await self?.updateSelectedGitmojiGroupName()
                 }
             })
             
@@ -167,12 +170,13 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
             await self?.insert(task: .detached { [weak self, gitmojiUseCase] in
                 do {
                     for await deletedObjects in try await gitmojiUseCase.didDeleteObjectsStream {
-                        let selectedGitmojiGroup: GitmojiGroup? = await self?.selectedGitmojiGroup
+                        guard let selectedGitmojiGroup: GitmojiGroup = await self?.selectedGitmojiGroup else {
+                            continue
+                        }
                         
                         if deletedObjects.contains(where: { deletedObject in
-                            return deletedObject.objectID == selectedGitmojiGroup?.objectID
+                            return deletedObject.objectID == selectedGitmojiGroup.objectID
                         }) {
-                            
                             await self?.clearEditAlertData()
                             await MainActor.run { [weak self] in
                                 self?.nsPredicate = .init(value: false)
@@ -181,7 +185,26 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
                         }
                     }
                 } catch {
-                    fatalError("\(error.localizedDescription)")
+                    fatalError(error.localizedDescription)
+                }
+            })
+            
+            // When properties of selectedGitmojiGroup is updated, update UI properties.
+            await self?.insert(task: .detached { [weak self, gitmojiUseCase] in
+                do {
+                    for await updatedObjects in try await gitmojiUseCase.didUpdateObjectsStream {
+                        guard let selectedGitmojiGroup: GitmojiGroup = await self?.selectedGitmojiGroup else {
+                            continue
+                        }
+                        
+                        if updatedObjects.contains(where: { updatedObject in
+                            return updatedObject.objectID == selectedGitmojiGroup.objectID
+                        }) {
+                            await self?.updateSelectedGitmojiGroupName()
+                        }
+                    }
+                } catch {
+                    fatalError(error.localizedDescription)
                 }
             })
         }
@@ -253,6 +276,23 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         
         await MainActor.run { [weak self, sortDescriptors] in
             self?.sortDescriptors = sortDescriptors
+        }
+    }
+    
+    private func updateSelectedGitmojiGroupName() async {
+        guard let selectedGitmojiGroup: GitmojiGroup = await selectedGitmojiGroup else {
+            await MainActor.run { [weak self] in
+                self?.selectedGitmojiGroupName = nil
+            }
+            return
+        }
+        
+        await gitmojiUseCase.conditionSafe { [weak self] in
+            let name: String = selectedGitmojiGroup.name
+            
+            await MainActor.run { [weak self] in
+                self?.selectedGitmojiGroupName = name
+            }
         }
     }
     

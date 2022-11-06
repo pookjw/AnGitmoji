@@ -211,10 +211,7 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
     }
     
     public func remove(gitmoji: Gitmoji) async throws {
-        try await conditionSafe {
-            gitmoji.group?.removeFromGitmojis(gitmoji)
-            return try await gitmojiRepository.remove(gitmoji: gitmoji)
-        }
+        return try await gitmojiRepository.remove(gitmoji: gitmoji)
     }
     
     public func removeAllGitmojiGroups() async throws {

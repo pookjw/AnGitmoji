@@ -183,6 +183,7 @@ actor GitmojiRepositoryImpl: GitmojiRepository {
     }
     
     func remove(gitmoji: Gitmoji) async throws {
+        gitmoji.group?.removeFromGitmojis(gitmoji)
         let context: NSManagedObjectContext = try await context
         
         await withCheckedContinuation { continuation in

@@ -5,7 +5,7 @@ struct GitmojiGroupListView: View {
     @Binding private var selectedGitmojiGroup: GitmojiGroup?
     @FetchRequest(
         sortDescriptors: [
-            SortDescriptor(\.index, order: .reverse)
+            SortDescriptor(\GitmojiGroup.index, order: .reverse)
         ],
         predicate: nil,
         animation: .easeInOut
