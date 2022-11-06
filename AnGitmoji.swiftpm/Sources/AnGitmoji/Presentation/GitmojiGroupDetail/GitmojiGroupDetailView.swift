@@ -73,13 +73,13 @@ struct GitmojiGroupDetailView: View {
                     }
             }
         }
-        .navigationTitle(viewModel.selectedGitmojiGroupName)
         .onChange(of: viewModel.sortDescriptors) { newValue in
             fetchedGitmojis.sortDescriptors = newValue
         }
         .onChange(of: viewModel.nsPredicate) { newValue in
             fetchedGitmojis.nsPredicate = newValue
         }
+        .navigationTitle(viewModel.selectedGitmojiGroupName)
         .searchable(text: $viewModel.searchText)
         .alert("Edit Gitmoji", isPresented: $viewModel.isPresentedEditAlert) {
             TextField("Enter emoji here...", text: $viewModel.editingGitmojiEmoji)

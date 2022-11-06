@@ -10,6 +10,7 @@ struct GitmojiGroupListView: View {
         predicate: nil,
         animation: .easeInOut
     ) private var fetchedGitmojiGroups: FetchedResults<GitmojiGroup>
+    @State private var isEditing: Bool = false
     @StateObject private var viewModel: GitmojiGroupListViewModel = .init()
     @State private var tasks: Set<Task<Void, Never>> = .init()
     
@@ -18,59 +19,89 @@ struct GitmojiGroupListView: View {
     }
     
     var body: some View {
-        List(selection: $selectedGitmojiGroups) {
-            ForEach(fetchedGitmojiGroups, id: \.self) { gitmojiGroup in
-                Text("\(gitmojiGroup.name)")
-                    .font(.title)
-                    .contextMenu {
-                        Button("Edit") {
-                            tasks.insert(.detached { [viewModel] in
-                                await viewModel.prepareEditAlert(gitmojiGroup: gitmojiGroup)
-                            })
+        Group {
+            List(selection: $selectedGitmojiGroups) {
+                ForEach(fetchedGitmojiGroups, id: \.self) { gitmojiGroup in
+                    Text("\(gitmojiGroup.name)")
+                        .font(.title)
+                        .contextMenu {
+                            Button("Edit") {
+                                tasks.insert(.detached { [viewModel] in
+                                    await viewModel.prepareEditAlert(gitmojiGroup: gitmojiGroup)
+                                })
+                            }
+                            
+                            Button("Delete") {
+                                tasks.insert(.detached { [viewModel] in
+                                    do {
+                                        try await viewModel.remove(gitmojiGroup: gitmojiGroup)
+                                    } catch {
+                                        fatalError(error.localizedDescription)
+                                    }
+                                })
+                            }
                         }
-                        
-                        Button("Delete") {
-                            tasks.insert(.detached { [viewModel] in
-                                do {
-                                    try await viewModel.remove(gitmojiGroup: gitmojiGroup)
-                                } catch {
-                                    fatalError(error.localizedDescription)
-                                }
-                            })
-                        }
+                }
+                .onDelete { indexSet in
+                    indexSet.forEach { index in
+                        let gitmojiGroup: GitmojiGroup = fetchedGitmojiGroups[index]
+                        tasks.insert(.detached { [viewModel] in
+                            do {
+                                try await viewModel.remove(gitmojiGroup: gitmojiGroup)
+                            } catch {
+                                fatalError(error.localizedDescription)
+                            }
+                        })
                     }
-            }
-            .onDelete { indexSet in
-                indexSet.forEach { index in
-                    let gitmojiGroup: GitmojiGroup = fetchedGitmojiGroups[index]
+                }
+                .onMove { indexSet, index in
                     tasks.insert(.detached { [viewModel] in
                         do {
-                            try await viewModel.remove(gitmojiGroup: gitmojiGroup)
+                            try await viewModel.move(of: indexSet, to: index)
                         } catch {
                             fatalError(error.localizedDescription)
                         }
                     })
                 }
+                //            .onDrop(of: <#T##[UTType]#>, isTargeted: <#T##Binding<Bool>?#>, perform: <#T##([NSItemProvider], CGPoint) -> Bool##([NSItemProvider], CGPoint) -> Bool##(_ providers: [NSItemProvider], _ location: CGPoint) -> Bool#>)
             }
-            .onMove { indexSet, index in
-                tasks.insert(.detached { [viewModel] in
-                    do {
-                        try await viewModel.move(of: indexSet, to: index)
-                    } catch {
-                        fatalError(error.localizedDescription)
-                    }
-                })
-            }
-//            .onDrop(of: <#T##[UTType]#>, isTargeted: <#T##Binding<Bool>?#>, perform: <#T##([NSItemProvider], CGPoint) -> Bool##([NSItemProvider], CGPoint) -> Bool##(_ providers: [NSItemProvider], _ location: CGPoint) -> Bool#>)
+            
+            EditableView(isEditing: $isEditing)
         }
         .onChange(of: viewModel.nsPredicate) { newValue in
             fetchedGitmojiGroups.nsPredicate = newValue
         }
         .listStyle(SidebarListStyle())
+        .renameAction {
+            
+        }
+        .contextMenu {
+            if !selectedGitmojiGroups.isEmpty {
+                Button {
+                    fatalError("TODO")
+                } label: {
+                    HStack {
+                        Image(systemName: "trash")
+                        Text("Delete Selected Groups")
+                    }
+                }
+            }
+            
+            Button {
+                fatalError("TODO")
+            } label: {
+                HStack {
+                    Image(systemName: "plus")
+                    Text("Create a new Group")
+                }
+            }
+
+        }
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 EditButton()
             }
+            
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     tasks.insert(.detached { [viewModel] in
@@ -81,6 +112,18 @@ struct GitmojiGroupListView: View {
                     Image(systemName: "ant")
                 }
             }
+            
+            if isEditing {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                    .disabled(selectedGitmojiGroups.isEmpty)
+                }
+            }
+            
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     tasks.insert(.detached { [viewModel] in
