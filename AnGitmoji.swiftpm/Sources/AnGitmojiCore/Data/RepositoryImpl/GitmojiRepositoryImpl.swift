@@ -104,6 +104,14 @@ actor GitmojiRepositoryImpl: GitmojiRepository {
         }
     }
     
+    func refresh(object: NSManagedObject) async throws {
+        let context: NSManagedObjectContext = try await context
+        await withCheckedContinuation { continuation in
+            context.refresh(object, mergeChanges: true)
+            continuation.resume(with: .success(()))
+        }
+    }
+    
     var newGitmojiGroup: GitmojiGroup {
         get async throws {
             let context: NSManagedObjectContext = try await context

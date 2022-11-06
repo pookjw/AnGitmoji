@@ -4,19 +4,35 @@ import AnGitmojiCore
 
 struct MainView: View {
     @StateObject private var viewModel: MainViewModel = .init()
-    @State private var selectedGitmojiGroup: GitmojiGroup?
+    @State private var selectedGitmojiGroups: Set<GitmojiGroup> = .init()
+    @State private var presentedGitmojiGroup: GitmojiGroup?
     
     var body: some View {
-        if let context: NSManagedObjectContext = viewModel.context {
-            NavigationSplitView {
-                GitmojiGroupListView(selectedGitmojiGroup: $selectedGitmojiGroup)
-                    .environment(\.managedObjectContext, context)
-            } detail: {
-                GitmojiGroupDetailView(selectedGitmojiGroup: $selectedGitmojiGroup)
-                    .environment(\.managedObjectContext, context)
+        Group {
+            if let context: NSManagedObjectContext = viewModel.context {
+                NavigationSplitView {
+                    GitmojiGroupListView(selectedGitmojiGroups: $selectedGitmojiGroups)
+                        .environment(\.managedObjectContext, context)
+                } detail: {
+                    if let presentedGitmojiGroup: GitmojiGroup {
+                        GitmojiGroupDetailView(selectedGitmojiGroup: presentedGitmojiGroup)
+                            .environment(\.managedObjectContext, context)
+                    } else {
+                        Text("No Selection")
+                    }
+                }
+            } else {
+                EmptyView()
             }
-        } else {
-            EmptyView()
+        }
+        .onChange(of: selectedGitmojiGroups) { newValue in
+            guard newValue.count == 1,
+                  let selectedGitmojiGroup: GitmojiGroup = newValue.first else {
+                presentedGitmojiGroup = nil
+                return
+            }
+            
+            presentedGitmojiGroup = selectedGitmojiGroup
         }
     }
 }

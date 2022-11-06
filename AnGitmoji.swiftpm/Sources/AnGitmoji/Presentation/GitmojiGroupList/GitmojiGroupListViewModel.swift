@@ -27,7 +27,7 @@ final class GitmojiGroupListViewModel: ObservableObject, @unchecked Sendable {
     }
     
     func move(of indexSet: IndexSet, to index: Int) async throws {
-        fatalError("TODO")
+        
     }
     
     func prepareEditAlert(gitmojiGroup: GitmojiGroup) async {

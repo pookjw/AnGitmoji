@@ -6,6 +6,7 @@ import CoreData
     
     // MARK: - Others
     @objc(conditionSafeWithBlock:completionHandler:) func _conditionSafe(block: @Sendable @escaping () -> Void) async
+    func refresh(object: NSManagedObject) async throws
     
     // MARK: - Create
     @discardableResult func createDefaultGitmojiGroupIfNeeded(force: Bool) async throws -> Bool

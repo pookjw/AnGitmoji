@@ -6,6 +6,7 @@ protocol GitmojiRepository: Sendable {
     var didInsertObjectsStream: AsyncStream<Set<NSManagedObject>> { get async throws }
     var didUpdateObjectsStream: AsyncStream<Set<NSManagedObject>> { get async throws }
     var didDeleteObjectsStream: AsyncStream<Set<NSManagedObject>> { get async throws }
+    func refresh(object: NSManagedObject) async throws
     var newGitmojiGroup: GitmojiGroup { get async throws }
     var newGitmoji: Gitmoji { get async throws }
     func gitmojiGroups(fetchRequest: NSFetchRequest<GitmojiGroup>) async throws -> [GitmojiGroup]

@@ -2,7 +2,7 @@ import SwiftUI
 import AnGitmojiCore
 
 struct GitmojiGroupListView: View {
-    @Binding private var selectedGitmojiGroup: GitmojiGroup?
+    @Binding private var selectedGitmojiGroups: Set<GitmojiGroup>
     @FetchRequest(
         sortDescriptors: [
             SortDescriptor(\GitmojiGroup.index, order: .reverse)
@@ -10,15 +10,15 @@ struct GitmojiGroupListView: View {
         predicate: nil,
         animation: .easeInOut
     ) private var fetchedGitmojiGroups: FetchedResults<GitmojiGroup>
-    @ObservedObject private var viewModel: GitmojiGroupListViewModel = .init()
+    @StateObject private var viewModel: GitmojiGroupListViewModel = .init()
     @State private var tasks: Set<Task<Void, Never>> = .init()
     
-    init(selectedGitmojiGroup: Binding<GitmojiGroup?>) {
-        self._selectedGitmojiGroup = selectedGitmojiGroup
+    init(selectedGitmojiGroups: Binding<Set<GitmojiGroup>>) {
+        self._selectedGitmojiGroups = selectedGitmojiGroups
     }
     
     var body: some View {
-        List(selection: $selectedGitmojiGroup) {
+        List(selection: $selectedGitmojiGroups) {
             ForEach(fetchedGitmojiGroups, id: \.self) { gitmojiGroup in
                 Text("\(gitmojiGroup.name)")
                     .font(.title)
@@ -121,6 +121,6 @@ struct GitmojiGroupListView: View {
 
 struct GitmojiGroupListView_Previews: PreviewProvider {
     static var previews: some View {
-        GitmojiGroupListView(selectedGitmojiGroup: .constant(nil))
+        GitmojiGroupListView(selectedGitmojiGroups: .constant(.init()))
     }
 }

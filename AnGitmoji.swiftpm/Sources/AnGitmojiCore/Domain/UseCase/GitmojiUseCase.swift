@@ -11,6 +11,7 @@ public protocol GitmojiUseCase: Sendable {
     var didDeleteObjectsStream: AsyncStream<Set<NSManagedObject>> { get async throws }
     func conditionSafe<T: Sendable>(block: @Sendable () async throws -> T) async throws -> T
     func conditionSafe<T: Sendable>(block: @Sendable () async -> T) async -> T
+    func refresh(object: NSManagedObject) async throws
     
     // MARK: - Create
     @discardableResult func createDefaultGitmojiGroupIfNeeded(force: Bool) async throws -> Bool

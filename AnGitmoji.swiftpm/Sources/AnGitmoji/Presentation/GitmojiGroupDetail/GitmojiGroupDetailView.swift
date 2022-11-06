@@ -9,83 +9,71 @@ struct GitmojiGroupDetailView: View {
         predicate: NSPredicate(value: false),
         animation: .easeInOut
     ) private var fetchedGitmojis: FetchedResults<Gitmoji>
-    @Binding private var selectedGitmojiGroup: GitmojiGroup?
-    @StateObject private var viewModel: GitmojiGroupDetailViewModel = .init()
+    @ObservedObject private var viewModel: GitmojiGroupDetailViewModel
     @State private var tasks: Set<Task<Void, Never>> = .init()
     
-    init(selectedGitmojiGroup: Binding<GitmojiGroup?>) {
-        self._selectedGitmojiGroup = selectedGitmojiGroup
+    init(selectedGitmojiGroup: GitmojiGroup) {
+        viewModel = .init(selectedGitmojiGroup: selectedGitmojiGroup)
     }
     
     var body: some View {
-        Group {
-            if viewModel.selectedGitmojiGroup != nil {
-                Table(selection: $viewModel.selectedGitmojis, sortOrder: $viewModel.keyPathComparators) {
-                    TableColumn("Emoji", value: \Gitmoji.emoji)
-                    TableColumn("Name", value: \Gitmoji.name)
-                    TableColumn("Code", value: \Gitmoji.code)
-                    TableColumn("Description", value: \Gitmoji.detail) { gitmoji in
-                        Text(gitmoji.detail)
-                            .lineLimit(nil)
+        Table(selection: $viewModel.selectedGitmojis, sortOrder: $viewModel.keyPathComparators) {
+            TableColumn("Emoji", value: \Gitmoji.emoji)
+            TableColumn("Name", value: \Gitmoji.name)
+            TableColumn("Code", value: \Gitmoji.code)
+            TableColumn("Description", value: \Gitmoji.detail) { gitmoji in
+                Text(gitmoji.detail)
+                    .lineLimit(nil)
+            }
+            TableColumn("Count", value: \Gitmoji.count, comparator: IntComparator()) { gitmoji in
+                Text("\(gitmoji.count)")
+            }
+        } rows: {
+            ForEach(fetchedGitmojis) { gitmoji in
+                TableRow(gitmoji)
+                    .contextMenu {
+                        Button("Edit") {
+                            tasks.insert(.detached { [viewModel] in
+                                await viewModel.prepareEditAlert(gitmoji: gitmoji)
+                            })
+                        }
+                        
+                        Button("Copy") {
+                            tasks.insert(.detached { [viewModel] in
+                                do {
+                                    try await viewModel.copy(gitmoji: gitmoji)
+                                } catch {
+                                    fatalError("\(error)")
+                                }
+                            })
+                        }
+                        
+                        Button("Delete") {
+                            tasks.insert(.detached { [viewModel] in
+                                do {
+                                    try await viewModel.remove(gitmoji: gitmoji)
+                                } catch {
+                                    fatalError("\(error)")
+                                }
+                            })
+                        }
+                        
+                        Divider()
+                        
+                        Button("Reset Count") {
+                            tasks.insert(.detached { [viewModel] in
+                                do {
+                                    try await viewModel.resetCount(gitmoji: gitmoji)
+                                } catch {
+                                    fatalError("\(error)")
+                                }
+                                
+                            })
+                        }
                     }
-                    TableColumn("Count", value: \Gitmoji.count, comparator: IntComparator()) { gitmoji in
-                        Text("\(gitmoji.count)")
-                    }
-                } rows: {
-                    ForEach(fetchedGitmojis) { gitmoji in
-                        TableRow(gitmoji)
-                            .contextMenu {
-                                Button("Edit") {
-                                    tasks.insert(.detached { [viewModel] in
-                                        await viewModel.prepareEditAlert(gitmoji: gitmoji)
-                                    })
-                                }
-                                
-                                Button("Copy") {
-                                    tasks.insert(.detached { [viewModel] in
-                                        do {
-                                            try await viewModel.copy(gitmoji: gitmoji)
-                                        } catch {
-                                            fatalError("\(error)")
-                                        }
-                                    })
-                                }
-                                
-                                Button("Delete") {
-                                    tasks.insert(.detached { [viewModel] in
-                                        do {
-                                            try await viewModel.remove(gitmoji: gitmoji)
-                                        } catch {
-                                            fatalError("\(error)")
-                                        }
-                                    })
-                                }
-                                
-                                Divider()
-                                
-                                Button("Reset Count") {
-                                    tasks.insert(.detached { [viewModel] in
-                                        do {
-                                            try await viewModel.resetCount(gitmoji: gitmoji)
-                                        } catch {
-                                            fatalError("\(error)")
-                                        }
-                                        
-                                    })
-                                }
-                            }
-                    }
-                }
-                .navigationTitle("\(viewModel.selectedGitmojiGroupName ?? "")")
-            } else {
-                Text("No Selection")
             }
         }
-        .onChange(of: selectedGitmojiGroup) { newValue in
-            tasks.forEach { $0.cancel() }
-            tasks.removeAll()
-            viewModel.selectedGitmojiGroup = newValue
-        }
+        .navigationTitle(viewModel.selectedGitmojiGroupName)
         .onChange(of: viewModel.sortDescriptors) { newValue in
             fetchedGitmojis.sortDescriptors = newValue
         }
@@ -124,6 +112,6 @@ struct GitmojiGroupDetailView: View {
 
 struct GitmojiGroupDetailViewl_Previews: PreviewProvider {
     static var previews: some View {
-        GitmojiGroupDetailView(selectedGitmojiGroup: .constant(nil))
+        GitmojiGroupDetailView(selectedGitmojiGroup: .init())
     }
 }

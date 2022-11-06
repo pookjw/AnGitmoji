@@ -4,7 +4,6 @@
 import AnGitmojiCore
 
 actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
-    @Published @MainActor var selectedGitmojiGroup: GitmojiGroup?
     @Published @MainActor var selectedGitmojis: Set<Gitmoji.ID> = .init()
     @Published @MainActor var keyPathComparators: [KeyPathComparator<Gitmoji>] = [
         // TODO: Need to save
@@ -20,15 +19,18 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
     @Published @MainActor private(set) var gitmojis: [Gitmoji] = []
     @Published @MainActor private(set) var sortDescriptors: [SortDescriptor<Gitmoji>] = []
     @Published @MainActor private(set) var nsPredicate: NSPredicate = .init(value: false)
-    @Published @MainActor private(set) var selectedGitmojiGroupName: String?
-    @Published @MainActor private(set) var selectedGitmojiGroupCount: Int?
+    @Published @MainActor private(set) var selectedGitmojiGroupName: String = ""
     private var editingGitmoji: Gitmoji?
+    
+    private let selectedGitmojiGroup: GitmojiGroup
     
     private let gitmojiUseCase: GitmojiUseCase = DIService.gitmojiUseCase
     private var tasks: Set<Task<Void, Never>> = .init()
     
-    init() {
+    init(selectedGitmojiGroup: GitmojiGroup) {
+        self.selectedGitmojiGroup = selectedGitmojiGroup
         bind()
+        load()
     }
     
     deinit {
@@ -86,7 +88,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
             return
         }
         
-        guard let editingGitmoji: Gitmoji = await editingGitmoji else {
+        guard let editingGitmoji: Gitmoji = editingGitmoji else {
             await clearEditAlertData()
             return
         }
@@ -131,18 +133,6 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
     
     private nonisolated func bind() {
         Task { [weak self, gitmojiUseCase] in
-            // When selectedGitmojiGroup is updated, load the Data Source.
-            await self?.insert(task: .detached { [weak self] in
-                guard let selectedGitmojiGroupPublisher: Published<GitmojiGroup?>.Publisher = await self?.$selectedGitmojiGroup else {
-                    return
-                }
-                
-                for await _ in selectedGitmojiGroupPublisher.values {
-                    await self?.updateNSPredicate()
-                    await self?.updateSelectedGitmojiGroupName()
-                }
-            })
-            
             // When sortOrders is updated, apply that changes to Data Source (gitmojis).
             await self?.insert(task: .detached { [weak self] in
                 guard let keyPathComparatorsPublisher: Published<[KeyPathComparator<Gitmoji>]>.Publisher = await self?.$keyPathComparators else {
@@ -166,21 +156,24 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
                 }
             })
             
-            // Detect when selectedGitmojiGroup is deleted.
+            // When properties of selectedGitmojiGroup is updated, update UI properties.
             await self?.insert(task: .detached { [weak self, gitmojiUseCase] in
                 do {
-                    for await deletedObjects in try await gitmojiUseCase.didDeleteObjectsStream {
-                        guard let selectedGitmojiGroup: GitmojiGroup = await self?.selectedGitmojiGroup else {
+                    for await updatedObjects in try await gitmojiUseCase.didUpdateObjectsStream {
+                        guard let selectedGitmojiGroup: GitmojiGroup = self?.selectedGitmojiGroup else {
                             continue
                         }
                         
-                        if deletedObjects.contains(where: { deletedObject in
-                            return deletedObject.objectID == selectedGitmojiGroup.objectID
-                        }) {
-                            await self?.clearEditAlertData()
-                            await MainActor.run { [weak self] in
-                                self?.nsPredicate = .init(value: false)
-                                self?.selectedGitmojiGroup = nil
+                        if let updatedGitmojiGroup: GitmojiGroup = updatedObjects
+                            .filter({ $0.objectID == selectedGitmojiGroup.objectID })
+                            .compactMap({ $0 as? GitmojiGroup })
+                            .first
+                        {
+                            await gitmojiUseCase.conditionSafe { [weak self] in
+                                let name: String = updatedGitmojiGroup.name
+                                await MainActor.run { [weak self] in
+                                    self?.selectedGitmojiGroupName = name
+                                }
                             }
                         }
                     }
@@ -188,23 +181,17 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
                     fatalError(error.localizedDescription)
                 }
             })
-            
-            // When properties of selectedGitmojiGroup is updated, update UI properties.
-            await self?.insert(task: .detached { [weak self, gitmojiUseCase] in
-                do {
-                    for await updatedObjects in try await gitmojiUseCase.didUpdateObjectsStream {
-                        guard let selectedGitmojiGroup: GitmojiGroup = await self?.selectedGitmojiGroup else {
-                            continue
-                        }
-                        
-                        if updatedObjects.contains(where: { updatedObject in
-                            return updatedObject.objectID == selectedGitmojiGroup.objectID
-                        }) {
-                            await self?.updateSelectedGitmojiGroupName()
-                        }
-                    }
-                } catch {
-                    fatalError(error.localizedDescription)
+        }
+    }
+    
+    private func load() {
+        Task { [weak self] in
+            await self?.insert(task: .detached { [weak self] in
+                await self?.updateNSPredicate()
+                
+                let name: String = self?.selectedGitmojiGroup.name ?? ""
+                await MainActor.run { [weak self] in
+                    self?.selectedGitmojiGroupName = name
                 }
             })
         }
@@ -217,31 +204,27 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
     private func updateNSPredicate() async {
         let predicate: NSPredicate
         
-        if let selectedGitmojiGroup: GitmojiGroup = await selectedGitmojiGroup {
-            let searchingText: String = await searchText
-            if searchingText.isEmpty {
-                predicate = .init(
-                    format: "(%K == %@)",
-                    #keyPath(Gitmoji.group),
-                    selectedGitmojiGroup
-                )
-            } else {
-                predicate = .init(
-                    format: "(%K == %@) && ((%K CONTAINS[cd] %@) || (%K CONTAINS[cd] %@) || (%K CONTAINS[cd] %@) || (%K CONTAINS[cd] %@))",
-                    #keyPath(Gitmoji.group),
-                    selectedGitmojiGroup,
-                    #keyPath(Gitmoji.emoji),
-                    searchingText,
-                    #keyPath(Gitmoji.name),
-                    searchingText,
-                    #keyPath(Gitmoji.code),
-                    searchingText,
-                    #keyPath(Gitmoji.detail),
-                    searchingText
-                )
-            }
+        let searchingText: String = await searchText
+        if searchingText.isEmpty {
+            predicate = .init(
+                format: "(%K == %@)",
+                #keyPath(Gitmoji.group),
+                selectedGitmojiGroup
+            )
         } else {
-            predicate = .init(value: false)
+            predicate = .init(
+                format: "(%K == %@) && ((%K CONTAINS[cd] %@) || (%K CONTAINS[cd] %@) || (%K CONTAINS[cd] %@) || (%K CONTAINS[cd] %@))",
+                #keyPath(Gitmoji.group),
+                selectedGitmojiGroup,
+                #keyPath(Gitmoji.emoji),
+                searchingText,
+                #keyPath(Gitmoji.name),
+                searchingText,
+                #keyPath(Gitmoji.code),
+                searchingText,
+                #keyPath(Gitmoji.detail),
+                searchingText
+            )
         }
         
         await MainActor.run { [weak self] in
@@ -276,23 +259,6 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         
         await MainActor.run { [weak self, sortDescriptors] in
             self?.sortDescriptors = sortDescriptors
-        }
-    }
-    
-    private func updateSelectedGitmojiGroupName() async {
-        guard let selectedGitmojiGroup: GitmojiGroup = await selectedGitmojiGroup else {
-            await MainActor.run { [weak self] in
-                self?.selectedGitmojiGroupName = nil
-            }
-            return
-        }
-        
-        await gitmojiUseCase.conditionSafe { [weak self] in
-            let name: String = selectedGitmojiGroup.name
-            
-            await MainActor.run { [weak self] in
-                self?.selectedGitmojiGroupName = name
-            }
         }
     }
     

@@ -55,6 +55,10 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
         await conditionSafe(block: block)
     }
     
+    public func refresh(object: NSManagedObject) async throws {
+        try await gitmojiRepository.refresh(object: object)
+    }
+    
     public func createDefaultGitmojiGroupIfNeeded(force: Bool) async throws -> Bool {
         try await conditionSafe {
             let fetchRequest: NSFetchRequest<GitmojiGroup> = GitmojiGroup.fetchRequest
