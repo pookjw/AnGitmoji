@@ -10,7 +10,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         // TODO: Need to save
         .init(\.code, order: .forward)
     ]
-    @Published @MainActor var searchingText: String = ""
+    @Published @MainActor var searchText: String = ""
     @Published @MainActor var isPresentedEditAlert: Bool = false
     @Published @MainActor var editingGitmoji: Gitmoji?
     @Published @MainActor var editingGitmojiEmoji: String = ""
@@ -148,6 +148,18 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
                 }
             })
             
+            // When searchText is updated, apply that changes to Data Source (gitmojis).
+            await self?.insert(task: .detached { [weak self] in
+                guard let searchTextPublisher: Published<String>.Publisher = await self?.$searchText else {
+                    return
+                }
+                
+                for await _ in searchTextPublisher.values {
+                    try? await Task.sleep(for: .seconds(0.3))
+                    await self?.updateNSPredicate()
+                }
+            })
+            
             // Detect when selectedGitmojiGroup is deleted.
             await self?.insert(task: .detached { [weak self, gitmojiUseCase] in
                 do {
@@ -179,7 +191,28 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         let predicate: NSPredicate?
         
         if let selectedGitmojiGroup: GitmojiGroup = await selectedGitmojiGroup {
-            predicate = .init(format: "%K == %@", #keyPath(Gitmoji.group), selectedGitmojiGroup)
+            let searchingText: String = await searchText
+            if searchingText.isEmpty {
+                predicate = .init(
+                    format: "(%K == %@)",
+                    #keyPath(Gitmoji.group),
+                    selectedGitmojiGroup
+                )
+            } else {
+                predicate = .init(
+                    format: "(%K == %@) && ((%K CONTAINS[cd] %@) || (%K CONTAINS[cd] %@) || (%K CONTAINS[cd] %@) || (%K CONTAINS[cd] %@))",
+                    #keyPath(Gitmoji.group),
+                    selectedGitmojiGroup,
+                    #keyPath(Gitmoji.emoji),
+                    searchingText,
+                    #keyPath(Gitmoji.name),
+                    searchingText,
+                    #keyPath(Gitmoji.code),
+                    searchingText,
+                    #keyPath(Gitmoji.detail),
+                    searchingText
+                )
+            }
         } else {
             predicate = nil
         }

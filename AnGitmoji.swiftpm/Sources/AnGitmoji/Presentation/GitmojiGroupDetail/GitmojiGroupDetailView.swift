@@ -7,7 +7,7 @@ struct GitmojiGroupDetailView: View {
         // When change of selectedGitmojiGroup is detected, there's no predicate in short time.
         // During that time, this view will show all Gitmoji objects without filtering. Below code will prevent it.
         predicate: NSPredicate(value: false),
-        animation: .default
+        animation: .easeInOut
     ) private var fetchedGitmojis: FetchedResults<Gitmoji>
     @Binding private var selectedGitmojiGroup: GitmojiGroup?
     @StateObject private var viewModel: GitmojiGroupDetailViewModel = .init()
@@ -21,8 +21,8 @@ struct GitmojiGroupDetailView: View {
         Group {
             if viewModel.selectedGitmojiGroup != nil {
                 Table(selection: $viewModel.selectedGitmojis, sortOrder: $viewModel.keyPathComparators) {
-                    TableColumn("Name", value: \Gitmoji.name)
                     TableColumn("Emoji", value: \Gitmoji.emoji)
+                    TableColumn("Name", value: \Gitmoji.name)
                     TableColumn("Code", value: \Gitmoji.code)
                     TableColumn("Description", value: \Gitmoji.detail) { gitmoji in
                         Text(gitmoji.detail)
@@ -95,7 +95,7 @@ struct GitmojiGroupDetailView: View {
         .onChange(of: viewModel.nsPredicate) { newValue in
             fetchedGitmojis.nsPredicate = newValue
         }
-        .searchable(text: $viewModel.searchingText)
+        .searchable(text: $viewModel.searchText)
         .alert("Edit Gitmoji", isPresented: $viewModel.isPresentedEditAlert) {
             TextField("Enter emoji here...", text: $viewModel.editingGitmojiEmoji)
             TextField("Enter code here...", text: $viewModel.editingGitmojiCode)

@@ -7,7 +7,8 @@ struct GitmojiGroupListView: View {
         sortDescriptors: [
             SortDescriptor(\.index, order: .reverse)
         ],
-        animation: .default
+        predicate: nil,
+        animation: .easeInOut
     ) private var fetchedGitmojiGroups: FetchedResults<GitmojiGroup>
     @ObservedObject private var viewModel: GitmojiGroupListViewModel = .init()
     @State private var tasks: Set<Task<Void, Never>> = .init()
@@ -50,6 +51,9 @@ struct GitmojiGroupListView: View {
             }
 //            .onDrop(of: <#T##[UTType]#>, isTargeted: <#T##Binding<Bool>?#>, perform: <#T##([NSItemProvider], CGPoint) -> Bool##([NSItemProvider], CGPoint) -> Bool##(_ providers: [NSItemProvider], _ location: CGPoint) -> Bool#>)
         }
+        .onChange(of: viewModel.nsPredicate) { newValue in
+            fetchedGitmojiGroups.nsPredicate = newValue
+        }
         .listStyle(SidebarListStyle())
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -75,6 +79,7 @@ struct GitmojiGroupListView: View {
                 }
             }
         }
+        .searchable(text: $viewModel.searchText)
         .navigationTitle(Text("Gitmojis"))
     }
 }
