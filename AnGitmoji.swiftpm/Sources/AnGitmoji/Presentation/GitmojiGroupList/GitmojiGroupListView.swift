@@ -23,6 +23,12 @@ struct GitmojiGroupListView: View {
                 Text("\(gitmojiGroup.name)")
                     .font(.title)
                     .contextMenu {
+                        Button("Edit") {
+                            tasks.insert(.detached { [viewModel] in
+                                await viewModel.prepareEditAlert(gitmojiGroup: gitmojiGroup)
+                            })
+                        }
+                        
                         Button("Delete") {
                             tasks.insert(.detached { [viewModel] in
                                 do {
@@ -47,7 +53,13 @@ struct GitmojiGroupListView: View {
                 }
             }
             .onMove { indexSet, index in
-                
+                tasks.insert(.detached { [viewModel] in
+                    do {
+                        try await viewModel.move(of: indexSet, to: index)
+                    } catch {
+                        fatalError(error.localizedDescription)
+                    }
+                })
             }
 //            .onDrop(of: <#T##[UTType]#>, isTargeted: <#T##Binding<Bool>?#>, perform: <#T##([NSItemProvider], CGPoint) -> Bool##([NSItemProvider], CGPoint) -> Bool##(_ providers: [NSItemProvider], _ location: CGPoint) -> Bool#>)
         }
@@ -80,6 +92,29 @@ struct GitmojiGroupListView: View {
             }
         }
         .searchable(text: $viewModel.searchText)
+        .alert("Edit Group", isPresented: $viewModel.isPresentedEditAlert) {
+            TextField("Enter name here...", text: $viewModel.editingGitmojiGroupName)
+            
+            Button("OK", role: .cancel) {
+                tasks.insert(.detached { [viewModel] in
+                    do {
+                        try await viewModel.endEditAlert(finished: true)
+                    } catch {
+                        fatalError("\(error)")
+                    }
+                })
+            }
+            
+            Button("Cancel", role: .destructive) {
+                tasks.insert(.detached { [viewModel] in
+                    do {
+                        try await viewModel.endEditAlert(finished: false)
+                    } catch {
+                        fatalError("\(error)")
+                    }
+                })
+            }
+        }
         .navigationTitle(Text("Gitmojis"))
     }
 }

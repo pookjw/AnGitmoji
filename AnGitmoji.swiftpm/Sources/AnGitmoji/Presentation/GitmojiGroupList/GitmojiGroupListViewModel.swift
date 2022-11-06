@@ -3,7 +3,11 @@ import AnGitmojiCore
 
 final class GitmojiGroupListViewModel: ObservableObject, @unchecked Sendable {
     @Published @MainActor var searchText: String = ""
+    @Published @MainActor var isPresentedEditAlert: Bool = false
+    @Published @MainActor var editingGitmojiGroupName: String = ""
+    
     @Published @MainActor private(set) var nsPredicate: NSPredicate?
+    private var editingGitmojiGroup: GitmojiGroup?
     
     private let gitmojiUseCase: GitmojiUseCase = DIService.gitmojiUseCase
     private var tasks: Set<Task<Void, Never>> = .init()
@@ -20,6 +24,51 @@ final class GitmojiGroupListViewModel: ObservableObject, @unchecked Sendable {
         let gitmojiGroupWithBackgroundContext: GitmojiGroup = try await gitmojiUseCase.object(with: gitmojiGroup.objectID)
         try await gitmojiUseCase.remove(gitmojiGroup: gitmojiGroupWithBackgroundContext)
         try await gitmojiUseCase.saveChanges()
+    }
+    
+    func move(of indexSet: IndexSet, to index: Int) async throws {
+        fatalError("TODO")
+    }
+    
+    func prepareEditAlert(gitmojiGroup: GitmojiGroup) async {
+        editingGitmojiGroup = gitmojiGroup
+        
+        await gitmojiUseCase.conditionSafe { [weak self] in
+            let name: String = gitmojiGroup.name
+            
+            await MainActor.run { [weak self] in
+                self?.editingGitmojiGroupName = name
+                self?.isPresentedEditAlert = true
+            }
+        }
+    }
+    
+    func endEditAlert(finished: Bool) async throws {
+        guard finished else {
+            await clearEditAlertData()
+            return
+        }
+        
+        guard let editingGitmojiGroup: GitmojiGroup = editingGitmojiGroup else {
+            await clearEditAlertData()
+            return
+        }
+        
+        let name: String = await editingGitmojiGroupName
+        
+        await clearEditAlertData()
+        
+        try await gitmojiUseCase.conditionSafe { [gitmojiUseCase] in
+            guard editingGitmojiGroup.managedObjectContext != nil else {
+                throw AGMError.objectWasDeleted
+            }
+            
+            let gitmojiGroupWithBackgroundContext: GitmojiGroup = try await gitmojiUseCase.object(with: editingGitmojiGroup.objectID)
+            
+            gitmojiGroupWithBackgroundContext.name = name
+            
+            try await gitmojiUseCase.saveChanges()
+        }
     }
     
     func test_removeAllGitmojiGroups() async throws {
@@ -60,6 +109,14 @@ final class GitmojiGroupListViewModel: ObservableObject, @unchecked Sendable {
         
         await MainActor.run { [weak self] in
             self?.nsPredicate = predicate
+        }
+    }
+    
+    private func clearEditAlertData() async {
+        editingGitmojiGroup = nil
+        await MainActor.run { [weak self] in
+            self?.editingGitmojiGroupName = ""
+            self?.isPresentedEditAlert = false
         }
     }
 }

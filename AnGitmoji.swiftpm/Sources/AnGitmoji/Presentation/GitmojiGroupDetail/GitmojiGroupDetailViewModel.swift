@@ -12,7 +12,6 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
     ]
     @Published @MainActor var searchText: String = ""
     @Published @MainActor var isPresentedEditAlert: Bool = false
-    @Published @MainActor var editingGitmoji: Gitmoji?
     @Published @MainActor var editingGitmojiEmoji: String = ""
     @Published @MainActor var editingGitmojiCode: String = ""
     @Published @MainActor var editingGitmojiName: String = ""
@@ -21,6 +20,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
     @Published @MainActor private(set) var gitmojis: [Gitmoji] = []
     @Published @MainActor private(set) var sortDescriptors: [SortDescriptor<Gitmoji>] = []
     @Published @MainActor private(set) var nsPredicate: NSPredicate = .init(value: false)
+    private var editingGitmoji: Gitmoji?
     
     private let gitmojiUseCase: GitmojiUseCase = DIService.gitmojiUseCase
     private var tasks: Set<Task<Void, Never>> = .init()
@@ -60,6 +60,8 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
     }
     
     func prepareEditAlert(gitmoji: Gitmoji) async {
+        editingGitmoji = gitmoji
+        
         await gitmojiUseCase.conditionSafe { [weak self] in
             let emoji: String = gitmoji.emoji
             let code: String = gitmoji.code
@@ -67,7 +69,6 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
             let detail: String = gitmoji.detail
             
             await MainActor.run { [weak self] in
-                self?.editingGitmoji = gitmoji
                 self?.editingGitmojiEmoji = emoji
                 self?.editingGitmojiCode = code
                 self?.editingGitmojiName = name
@@ -84,8 +85,10 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         }
         
         guard let editingGitmoji: Gitmoji = await editingGitmoji else {
+            await clearEditAlertData()
             return
         }
+        
         let emoji: String = await editingGitmojiEmoji
         let code: String = await editingGitmojiCode
         let name: String = await editingGitmojiName
@@ -95,7 +98,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         
         try await gitmojiUseCase.conditionSafe { [gitmojiUseCase] in
             guard editingGitmoji.managedObjectContext != nil else {
-                throw AGMError.gitmojiWasDeleted
+                throw AGMError.objectWasDeleted
             }
             
             let gitmojiWithBackgroundContext: Gitmoji = try await gitmojiUseCase.object(with: editingGitmoji.objectID)
@@ -112,7 +115,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
     func edit(gitmoji: Gitmoji, emoji: String, code: String, name: String, detail: String) async throws {
         try await gitmojiUseCase.conditionSafe { [gitmojiUseCase] in
             guard gitmoji.managedObjectContext != nil else {
-                throw AGMError.gitmojiWasDeleted
+                throw AGMError.objectWasDeleted
             }
             
             gitmoji.emoji = emoji
@@ -170,8 +173,8 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
                             return deletedObject.objectID == selectedGitmojiGroup?.objectID
                         }) {
                             
+                            await self?.clearEditAlertData()
                             await MainActor.run { [weak self] in
-                                self?.clearEditAlertData()
                                 self?.nsPredicate = .init(value: false)
                                 self?.selectedGitmojiGroup = nil
                             }
@@ -253,12 +256,14 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         }
     }
     
-    @MainActor private func clearEditAlertData() {
+    private func clearEditAlertData() async {
         editingGitmoji = nil
-        editingGitmojiEmoji = ""
-        editingGitmojiCode = ""
-        editingGitmojiName = ""
-        editingGitmojiDetail = ""
-        isPresentedEditAlert = false
+        await MainActor.run { [weak self] in
+            self?.editingGitmojiEmoji = ""
+            self?.editingGitmojiCode = ""
+            self?.editingGitmojiName = ""
+            self?.editingGitmojiDetail = ""
+            self?.isPresentedEditAlert = false
+        }
     }
 }

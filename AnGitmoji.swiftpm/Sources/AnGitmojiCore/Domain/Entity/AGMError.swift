@@ -10,5 +10,5 @@ public enum AGMError: Error {
     case outOfIndex
     case noGitmojiGroup
     case gotNSNotFound
-    case gitmojiWasDeleted
+    case objectWasDeleted
 }
