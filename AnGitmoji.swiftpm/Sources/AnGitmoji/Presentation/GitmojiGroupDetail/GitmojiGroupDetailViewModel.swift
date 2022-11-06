@@ -20,7 +20,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
     
     @Published @MainActor private(set) var gitmojis: [Gitmoji] = []
     @Published @MainActor private(set) var sortDescriptors: [SortDescriptor<Gitmoji>] = []
-    @Published @MainActor private(set) var nsPredicate: NSPredicate?
+    @Published @MainActor private(set) var nsPredicate: NSPredicate = .init(value: false)
     
     private let gitmojiUseCase: GitmojiUseCase = DIService.gitmojiUseCase
     private var tasks: Set<Task<Void, Never>> = .init()
@@ -172,6 +172,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
                             
                             await MainActor.run { [weak self] in
                                 self?.clearEditAlertData()
+                                self?.nsPredicate = .init(value: false)
                                 self?.selectedGitmojiGroup = nil
                             }
                         }
@@ -188,7 +189,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
     }
     
     private func updateNSPredicate() async {
-        let predicate: NSPredicate?
+        let predicate: NSPredicate
         
         if let selectedGitmojiGroup: GitmojiGroup = await selectedGitmojiGroup {
             let searchingText: String = await searchText
@@ -214,7 +215,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
                 )
             }
         } else {
-            predicate = nil
+            predicate = .init(value: false)
         }
         
         await MainActor.run { [weak self] in
