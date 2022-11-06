@@ -184,7 +184,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         }
     }
     
-    private func load() {
+    private nonisolated func load() {
         Task { [weak self] in
             await self?.insert(task: .detached { [weak self] in
                 await self?.updateNSPredicate()

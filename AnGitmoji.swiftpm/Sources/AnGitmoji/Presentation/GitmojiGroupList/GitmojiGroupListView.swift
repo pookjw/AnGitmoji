@@ -92,7 +92,7 @@ struct GitmojiGroupListView: View {
             }
         }
         .searchable(text: $viewModel.searchText)
-        .alert("Edit Group", isPresented: $viewModel.isPresentedEditAlert) {
+        .alert("Edit Group name", isPresented: $viewModel.isPresentedEditAlert) {
             TextField("Enter name here...", text: $viewModel.editingGitmojiGroupName)
             
             Button("OK", role: .cancel) {
