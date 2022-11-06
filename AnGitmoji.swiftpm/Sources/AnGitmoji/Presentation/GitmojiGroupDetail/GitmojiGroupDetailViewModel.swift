@@ -133,7 +133,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
                 }
                 
                 for await _ in selectedGitmojiGroupPublisher.values {
-                    await self?.updateGitmojis()
+                    await self?.updateNSPredicate()
                 }
             })
             
@@ -144,7 +144,7 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
                 }
                 
                 for await _ in keyPathComparatorsPublisher.values {
-                    await self?.updateGitmojis()
+                    await self?.updateSortDescriptors()
                 }
             })
             
@@ -175,9 +175,21 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         tasks.insert(task)
     }
     
-    private func updateGitmojis() async {
-        let predicate: NSPredicate = await .init(format: "%K = %@", argumentArray: [#keyPath(Gitmoji.group), selectedGitmojiGroup])
+    private func updateNSPredicate() async {
+        let predicate: NSPredicate?
         
+        if let selectedGitmojiGroup: GitmojiGroup = await selectedGitmojiGroup {
+            predicate = .init(format: "%K == %@", #keyPath(Gitmoji.group), selectedGitmojiGroup)
+        } else {
+            predicate = nil
+        }
+        
+        await MainActor.run { [weak self] in
+            self?.nsPredicate = predicate
+        }
+    }
+    
+    private func updateSortDescriptors() async {
         var hasCodeSortDescriptor: Bool = false
         var sortDescriptors: [SortDescriptor<Gitmoji>] = await keyPathComparators.compactMap { keyPathComparator in
             // PartialKeyPath<Gitmoji> -> KeyPath<Gitmoji, V>
@@ -203,17 +215,8 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         }
         
         await MainActor.run { [weak self, sortDescriptors] in
-            self?.nsPredicate = predicate
             self?.sortDescriptors = sortDescriptors
         }
-    }
-    
-    private func updateNSPredicate() async {
-        
-    }
-    
-    private func updateSortDescriptors() async {
-        
     }
     
     @MainActor private func clearEditAlertData() {

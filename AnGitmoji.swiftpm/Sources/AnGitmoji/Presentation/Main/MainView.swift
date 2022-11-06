@@ -3,7 +3,7 @@ import CoreData
 import AnGitmojiCore
 
 struct MainView: View {
-    @ObservedObject private var viewModel: MainViewModel = .init()
+    @StateObject private var viewModel: MainViewModel = .init()
     @State private var selectedGitmojiGroup: GitmojiGroup?
     
     var body: some View {
@@ -12,9 +12,8 @@ struct MainView: View {
                 GitmojiGroupListView(selectedGitmojiGroup: $selectedGitmojiGroup)
                     .environment(\.managedObjectContext, context)
             } detail: {
-                GitmojiGroupDetailView()
+                GitmojiGroupDetailView(selectedGitmojiGroup: $selectedGitmojiGroup)
                     .environment(\.managedObjectContext, context)
-                    .environment(\.selectedGitmojiGroup, selectedGitmojiGroup)
             }
         } else {
             EmptyView()

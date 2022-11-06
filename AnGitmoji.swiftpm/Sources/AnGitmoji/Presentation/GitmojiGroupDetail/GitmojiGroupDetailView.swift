@@ -9,16 +9,20 @@ struct GitmojiGroupDetailView: View {
         predicate: NSPredicate(value: false),
         animation: .default
     ) private var fetchedGitmojis: FetchedResults<Gitmoji>
-    @Environment(\.selectedGitmojiGroup) private var selectedGitmojiGroup: GitmojiGroup?
+    @Binding private var selectedGitmojiGroup: GitmojiGroup?
     @StateObject private var viewModel: GitmojiGroupDetailViewModel = .init()
     @State private var tasks: Set<Task<Void, Never>> = .init()
+    
+    init(selectedGitmojiGroup: Binding<GitmojiGroup?>) {
+        self._selectedGitmojiGroup = selectedGitmojiGroup
+    }
     
     var body: some View {
         Group {
             if viewModel.selectedGitmojiGroup != nil {
                 Table(selection: $viewModel.selectedGitmojis, sortOrder: $viewModel.keyPathComparators) {
-                    TableColumn("Emoji", value: \Gitmoji.emoji)
                     TableColumn("Name", value: \Gitmoji.name)
+                    TableColumn("Emoji", value: \Gitmoji.emoji)
                     TableColumn("Code", value: \Gitmoji.code)
                     TableColumn("Description", value: \Gitmoji.detail) { gitmoji in
                         Text(gitmoji.detail)
@@ -85,12 +89,11 @@ struct GitmojiGroupDetailView: View {
             tasks.removeAll()
             viewModel.selectedGitmojiGroup = newValue
         }
-        .onReceive(viewModel.nsPredicate.publisher) { newValue in
-            fetchedGitmojis.nsPredicate = newValue
+        .onChange(of: viewModel.sortDescriptors) { newValue in
+            fetchedGitmojis.sortDescriptors = newValue
         }
-        .onReceive(viewModel.sortDescriptors.publisher) { newValue in
-//            fetchedGitmojis.sortDescriptors = newValue
-            viewModel.sortDescriptors.pu
+        .onChange(of: viewModel.nsPredicate) { newValue in
+            fetchedGitmojis.nsPredicate = newValue
         }
         .searchable(text: $viewModel.searchingText)
         .alert("Edit Gitmoji", isPresented: $viewModel.isPresentedEditAlert) {
@@ -124,6 +127,6 @@ struct GitmojiGroupDetailView: View {
 
 struct GitmojiGroupDetailViewl_Previews: PreviewProvider {
     static var previews: some View {
-        GitmojiGroupDetailView()
+        GitmojiGroupDetailView(selectedGitmojiGroup: .constant(nil))
     }
 }
