@@ -59,11 +59,11 @@ struct GitmojiGroupListView: View {
                                 preview: SharePreview("Share", image: Image(systemName: "xmark"))
                             )
                         }
-//                        .onDrag {
-//                            gitmojiGroup.loadTransferable(type: <#T##T#>, completionHandler: <#T##(Result<T, Error>) -> Void#>)
-//                            let itemProvider: NSItemProvider = .init()
-//                            return itemProvider
-//                        }
+                        .onDrag {
+                            let itemProvider: NSItemProvider = .init()
+                            itemProvider.register(gitmojiGroup)
+                            return itemProvider
+                        }
                 }
                 .onDelete { indexSet in
                     indexSet.forEach { index in
