@@ -71,13 +71,16 @@ struct GitmojiGroupListView: View {
             fetchedGitmojiGroups.nsPredicate = newValue
         }
         .listStyle(SidebarListStyle())
-        .renameAction {
-            
-        }
         .contextMenu {
             if !viewModel.selectedGitmojiGroups.isEmpty {
                 Button {
-                    fatalError("TODO")
+                    tasks.insert(.detached { [viewModel] in
+                        do {
+                            try await viewModel.removeSelectedGitmojiGroups()
+                        } catch {
+                            fatalError(error.localizedDescription)
+                        }
+                    })
                 } label: {
                     HStack {
                         Image(systemName: "trash")
@@ -87,7 +90,13 @@ struct GitmojiGroupListView: View {
             }
             
             Button {
-                fatalError("TODO")
+                tasks.insert(.detached {
+                    do {
+                        try await viewModel.test_create()
+                    } catch {
+                        fatalError(error.localizedDescription)
+                    }
+                })
             } label: {
                 HStack {
                     Image(systemName: "plus")

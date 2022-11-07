@@ -28,6 +28,21 @@ final class GitmojiGroupListViewModel: ObservableObject, @unchecked Sendable {
         try await gitmojiUseCase.saveChanges()
     }
     
+    func removeSelectedGitmojiGroups() async throws {
+        let selectedGitmojiGroups: Set<GitmojiGroup> = await selectedGitmojiGroups
+        
+        guard !selectedGitmojiGroups.isEmpty else {
+            return
+        }
+        
+        for selectedGitmojiGroup in selectedGitmojiGroups {
+            let gitmojiGroupWithBackgroundContext: GitmojiGroup = try await gitmojiUseCase.object(with: selectedGitmojiGroup.objectID)
+            try await gitmojiUseCase.remove(gitmojiGroup: gitmojiGroupWithBackgroundContext)
+        }
+        
+        try await gitmojiUseCase.saveChanges()
+    }
+    
     func move(of indexSet: IndexSet, to index: Int) async throws {
         fatalError("TODO")
     }
