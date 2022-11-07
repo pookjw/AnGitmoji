@@ -24,13 +24,15 @@ struct GitmojiGroupListView: View {
                     Text("\(gitmojiGroup.name)")
                         .font(.title)
                         .contextMenu {
-                            Button("Edit") {
+                            Button {
                                 tasks.insert(.detached { [viewModel] in
                                     await viewModel.prepareEditAlert(gitmojiGroup: gitmojiGroup)
                                 })
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
                             }
                             
-                            Button("Delete") {
+                            Button {
                                 tasks.insert(.detached { [viewModel] in
                                     do {
                                         try await viewModel.remove(gitmojiGroup: gitmojiGroup)
@@ -38,6 +40,8 @@ struct GitmojiGroupListView: View {
                                         fatalError(error.localizedDescription)
                                     }
                                 })
+                            } label: {
+                                Label("Delete", systemImage: "trash")
                             }
                         }
                 }
@@ -82,10 +86,7 @@ struct GitmojiGroupListView: View {
                         }
                     })
                 } label: {
-                    HStack {
-                        Image(systemName: "trash")
-                        Text("Delete Selected Groups")
-                    }
+                    Label("Delete Selected Groups", systemImage: "trash")
                 }
             }
             
@@ -98,10 +99,7 @@ struct GitmojiGroupListView: View {
                     }
                 })
             } label: {
-                HStack {
-                    Image(systemName: "plus")
-                    Text("Create a new Group")
-                }
+                Label("Create a new Group", systemImage: "plus")
             }
 
         }
