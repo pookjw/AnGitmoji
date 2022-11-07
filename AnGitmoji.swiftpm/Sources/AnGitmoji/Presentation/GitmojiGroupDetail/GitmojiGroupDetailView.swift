@@ -32,13 +32,15 @@ struct GitmojiGroupDetailView: View {
             ForEach(fetchedGitmojis) { gitmoji in
                 TableRow(gitmoji)
                     .contextMenu {
-                        Button("Edit") {
+                        Button {
                             tasks.insert(.detached { [viewModel] in
                                 await viewModel.prepareEditAlert(gitmoji: gitmoji)
                             })
+                        } label: {
+                            Label("Edit", systemImage: "pencil")
                         }
                         
-                        Button("Copy") {
+                        Button {
                             tasks.insert(.detached { [viewModel] in
                                 do {
                                     try await viewModel.copy(gitmoji: gitmoji)
@@ -46,9 +48,11 @@ struct GitmojiGroupDetailView: View {
                                     fatalError("\(error)")
                                 }
                             })
+                        } label: {
+                            Label("Copy", systemImage: "doc.on.doc")
                         }
                         
-                        Button("Delete") {
+                        Button {
                             tasks.insert(.detached { [viewModel] in
                                 do {
                                     try await viewModel.remove(gitmoji: gitmoji)
@@ -56,11 +60,13 @@ struct GitmojiGroupDetailView: View {
                                     fatalError("\(error)")
                                 }
                             })
+                        } label: {
+                            Label("Delete", systemImage: "trash")
                         }
                         
                         Divider()
                         
-                        Button("Reset Count") {
+                        Button {
                             tasks.insert(.detached { [viewModel] in
                                 do {
                                     try await viewModel.resetCount(gitmoji: gitmoji)
@@ -69,6 +75,8 @@ struct GitmojiGroupDetailView: View {
                                 }
                                 
                             })
+                        } label: {
+                            Label("Reset Count", systemImage: "arrow.triangle.2.circlepath")
                         }
                     }
             }
