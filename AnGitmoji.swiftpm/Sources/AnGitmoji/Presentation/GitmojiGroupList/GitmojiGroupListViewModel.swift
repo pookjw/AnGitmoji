@@ -99,7 +99,7 @@ final class GitmojiGroupListViewModel: ObservableObject, @unchecked Sendable {
     
     private func bind() {
         tasks.insert(.detached { [weak self] in
-            guard let searchTextPublisher: Published<String>.Publisher = await self?.$searchText else {
+            guard let searchTextPublisher: Published<String>.Publisher = self?.$searchText else {
                 return
             }
             
