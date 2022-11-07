@@ -2,7 +2,6 @@ import SwiftUI
 import AnGitmojiCore
 
 struct GitmojiGroupListView: View {
-    @Binding private var selectedGitmojiGroups: Set<GitmojiGroup>
     @FetchRequest(
         sortDescriptors: [
             SortDescriptor(\GitmojiGroup.index, order: .reverse)
@@ -11,16 +10,16 @@ struct GitmojiGroupListView: View {
         animation: .easeInOut
     ) private var fetchedGitmojiGroups: FetchedResults<GitmojiGroup>
     @State private var isEditing: Bool = false
-    @StateObject private var viewModel: GitmojiGroupListViewModel = .init()
+    @ObservedObject private var viewModel: GitmojiGroupListViewModel
     @State private var tasks: Set<Task<Void, Never>> = .init()
     
     init(selectedGitmojiGroups: Binding<Set<GitmojiGroup>>) {
-        self._selectedGitmojiGroups = selectedGitmojiGroups
+        self.viewModel = .init(selectedGitmojiGroups: selectedGitmojiGroups)
     }
     
     var body: some View {
         Group {
-            List(selection: $selectedGitmojiGroups) {
+            List(selection: viewModel.$selectedGitmojiGroups) {
                 ForEach(fetchedGitmojiGroups, id: \.self) { gitmojiGroup in
                     Text("\(gitmojiGroup.name)")
                         .font(.title)
@@ -76,7 +75,7 @@ struct GitmojiGroupListView: View {
             
         }
         .contextMenu {
-            if !selectedGitmojiGroups.isEmpty {
+            if !viewModel.selectedGitmojiGroups.isEmpty {
                 Button {
                     fatalError("TODO")
                 } label: {
@@ -120,7 +119,7 @@ struct GitmojiGroupListView: View {
                     } label: {
                         Image(systemName: "trash")
                     }
-                    .disabled(selectedGitmojiGroups.isEmpty)
+                    .disabled(viewModel.selectedGitmojiGroups.isEmpty)
                 }
             }
             

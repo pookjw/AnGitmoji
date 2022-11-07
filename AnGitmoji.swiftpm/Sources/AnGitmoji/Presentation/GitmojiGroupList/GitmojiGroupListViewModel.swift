@@ -6,13 +6,15 @@ final class GitmojiGroupListViewModel: ObservableObject, @unchecked Sendable {
     @Published @MainActor var isPresentedEditAlert: Bool = false
     @Published @MainActor var editingGitmojiGroupName: String = ""
     
+    @Binding @MainActor private(set) var selectedGitmojiGroups: Set<GitmojiGroup>
     @Published @MainActor private(set) var nsPredicate: NSPredicate?
     private var editingGitmojiGroup: GitmojiGroup?
     
     private let gitmojiUseCase: GitmojiUseCase = DIService.gitmojiUseCase
     private var tasks: Set<Task<Void, Never>> = .init()
     
-    init() {
+    init(selectedGitmojiGroups: Binding<Set<GitmojiGroup>>) {
+        self._selectedGitmojiGroups = selectedGitmojiGroups
         bind()
     }
     
@@ -27,7 +29,7 @@ final class GitmojiGroupListViewModel: ObservableObject, @unchecked Sendable {
     }
     
     func move(of indexSet: IndexSet, to index: Int) async throws {
-        
+        fatalError("TODO")
     }
     
     func prepareEditAlert(gitmojiGroup: GitmojiGroup) async {
