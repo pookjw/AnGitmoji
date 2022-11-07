@@ -59,22 +59,30 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
         try await gitmojiRepository.refresh(object: object)
     }
     
-    public func createDefaultGitmojiGroupIfNeeded(force: Bool) async throws -> Bool {
-        try await conditionSafe {
-            let fetchRequest: NSFetchRequest<GitmojiGroup> = GitmojiGroup.fetchRequest
-            fetchRequest.includesSubentities = true
-            fetchRequest.includesPendingChanges = true
-            let count: Int = try await gitmojiRepository.gitmojiGroupsCount(fetchRequest: fetchRequest)
-            
-            guard (count == .zero) || force else {
-                return false
-            }
-            
+    public func jsonData(from gitmojiGroup: GitmojiGroup) async throws -> Data {
+        let gitmojiJSON: GitmojiJSON = try await createGitmojiJSON(from: gitmojiGroup)
+        let encoder: JSONEncoder = .init()
+        encoder.outputFormatting = .prettyPrinted
+        let result: Data = try encoder.encode(gitmojiJSON)
+        return result
+    }
+    
+    @discardableResult public func createDefaultGitmojiGroupIfNeeded(force: Bool) async throws -> GitmojiGroup? {
+        let fetchRequest: NSFetchRequest<GitmojiGroup> = GitmojiGroup.fetchRequest
+        fetchRequest.includesSubentities = true
+        fetchRequest.includesPendingChanges = true
+        let count: Int = try await gitmojiRepository.gitmojiGroupsCount(fetchRequest: fetchRequest)
+        
+        guard (count == .zero) || force else {
+            return nil
+        }
+        
+        return try await conditionSafe {
             let defaultGitmojiJSON: GitmojiJSON = try await gitmojiJSONRepository.defaultGitmojiJSON
             let gitmojiGroup: GitmojiGroup = try await createGitmojiGroup(from: defaultGitmojiJSON)
             gitmojiGroup.name = "carloscuesta's Gitmojis"
             gitmojiGroup.index = count
-            return true
+            return gitmojiGroup
         }
     }
     
@@ -237,5 +245,39 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
         
         try await gitmojiRepository.saveChanges()
         return newGitmojiGroup
+    }
+    
+    private func createGitmojiJSON(from gitmojiGroup: GitmojiGroup) async throws -> GitmojiJSON {
+        return try await conditionSafe {
+            let gitmojiJSONObjects: [GitmojiJSON.Object] = try gitmojiGroup
+                .gitmojis
+                .compactMap { object throws -> GitmojiJSON.Object? in
+                    guard let gitmoji: Gitmoji = object as? Gitmoji else {
+                        return nil
+                    }
+                    
+                    let emoji: String = gitmoji.emoji
+                    let emojiNumericReferencesValue: [UInt32] = emoji
+                        .unicodeScalars
+                        .map { $0.value }
+                    let entity: String = emojiNumericReferencesValue
+                        .map { "&#\($0);" }
+                        .joined()
+                    
+                    let result: GitmojiJSON.Object = .init(
+                        emoji: emoji,
+                        entity: entity,
+                        code: gitmoji.code,
+                        description: gitmoji.detail,
+                        name: gitmoji.name,
+                        semver: gitmoji.semver
+                    )
+                    
+                    return result
+                }
+            
+            let result: GitmojiJSON = .init(gitmojis: gitmojiJSONObjects)
+            return result
+        }
     }
 }

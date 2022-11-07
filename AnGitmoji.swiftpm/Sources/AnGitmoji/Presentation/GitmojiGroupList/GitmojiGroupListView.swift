@@ -12,6 +12,7 @@ struct GitmojiGroupListView: View {
     @State private var isEditing: Bool = false
     @ObservedObject private var viewModel: GitmojiGroupListViewModel
     @State private var tasks: Set<Task<Void, Never>> = .init()
+    @State var shareURL: URL?
     
     init(selectedGitmojiGroups: Binding<Set<GitmojiGroup>>) {
         self.viewModel = .init(selectedGitmojiGroups: selectedGitmojiGroups)
@@ -43,6 +44,19 @@ struct GitmojiGroupListView: View {
                             } label: {
                                 Label("Delete", systemImage: "trash")
                             }
+                            
+                            Divider()
+                            
+                            Button {
+                                fatalError("TODO")
+                            } label: {
+                                Label("Export", systemImage: "square.and.arrow.down")
+                            }
+                            
+                            ShareLink(
+                                item: gitmojiGroup,
+                                preview: SharePreview("Share", image: Image(systemName: "xmark"))
+                            )
                         }
                 }
                 .onDelete { indexSet in

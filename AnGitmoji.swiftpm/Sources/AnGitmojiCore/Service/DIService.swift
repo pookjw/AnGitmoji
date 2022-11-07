@@ -2,24 +2,22 @@ import Foundation
 
 public final class DIService: NSObject {
     public static var gitmojiUseCase: GitmojiUseCase {
-        let gitmojiJSONDataSource: GitmojiJSONDataSource = GitmojiJSONNetwork()
-        
-        let gitmojiRepository: GitmojiRepository = GitmojiRepositoryImpl.shared
-        let gitmojiJSONRepository: GitmojiJSONRepository = GitmojiJSONRepositoryImpl(gitmojiDataSource: gitmojiJSONDataSource)
-        
-        let gitmojiUseCase: GitmojiUseCase = GitmojiUseCaseImpl(gitmojiRepository: gitmojiRepository, gitmojiJSONRepository: gitmojiJSONRepository)
-        
-        return gitmojiUseCase
+        GitmojiUseCaseImpl(gitmojiRepository: gitmojiRepository, gitmojiJSONRepository: gitmojiJSONRepository)
     }
     
     @objc(gitmojiUseCase) public static var gitmojiUseCaseObjCRepresentable: GitmojiUseCaseObjCRepresentable {
-        let gitmojiJSONDataSource: GitmojiJSONDataSource = GitmojiJSONNetwork()
-        
-        let gitmojiRepository: GitmojiRepository = GitmojiRepositoryImpl.shared
-        let gitmojiJSONRepository: GitmojiJSONRepository = GitmojiJSONRepositoryImpl(gitmojiDataSource: gitmojiJSONDataSource)
-        
-        let gitmojiUseCaseObjCRepresentable: GitmojiUseCaseObjCRepresentable = GitmojiUseCaseImpl(gitmojiRepository: gitmojiRepository, gitmojiJSONRepository: gitmojiJSONRepository)
-        
-        return gitmojiUseCaseObjCRepresentable
+        GitmojiUseCaseImpl(gitmojiRepository: gitmojiRepository, gitmojiJSONRepository: gitmojiJSONRepository)
+    }
+    
+    static var gitmojiJSONDataSource: GitmojiJSONDataSource {
+        GitmojiJSONNetwork()
+    }
+    
+    static var gitmojiRepository: GitmojiRepository {
+        GitmojiRepositoryImpl.shared
+    }
+    
+    static var gitmojiJSONRepository: GitmojiJSONRepository {
+        GitmojiJSONRepositoryImpl(gitmojiDataSource: gitmojiJSONDataSource)
     }
 }

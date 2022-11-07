@@ -1,5 +1,6 @@
 import SwiftUI
 import AnGitmojiCore
+import UniformTypeIdentifiers
 
 final class GitmojiGroupListViewModel: ObservableObject, @unchecked Sendable {
     @Published @MainActor var searchText: String = ""

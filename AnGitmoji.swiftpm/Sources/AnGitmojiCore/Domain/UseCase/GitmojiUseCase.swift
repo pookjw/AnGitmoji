@@ -12,9 +12,10 @@ public protocol GitmojiUseCase: Sendable {
     func conditionSafe<T: Sendable>(block: @Sendable () async throws -> T) async throws -> T
     func conditionSafe<T: Sendable>(block: @Sendable () async -> T) async -> T
     func refresh(object: NSManagedObject) async throws
+    func jsonData(from gitmojiGroup: GitmojiGroup) async throws -> Data
     
     // MARK: - Create
-    @discardableResult func createDefaultGitmojiGroupIfNeeded(force: Bool) async throws -> Bool
+    @discardableResult func createDefaultGitmojiGroupIfNeeded(force: Bool) async throws -> GitmojiGroup?
     func createGitmojiGroup(from url: URL, name: String) async throws -> GitmojiGroup
     var newGitmojiGroup: GitmojiGroup { get async throws }
     func newGitmoji(to gitmojiGroup: GitmojiGroup, index: Int?) async throws -> Gitmoji

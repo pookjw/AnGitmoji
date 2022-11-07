@@ -135,13 +135,21 @@ final class GitmojiUseCaseImplTests: XCTestCase, @unchecked Sendable {
         task.cancel()
     }
     
+    func testJSONData() async throws {
+        let gitmojiGroup: GitmojiGroup = try await gitmojiUseCaseImpl.createDefaultGitmojiGroupIfNeeded(force: true)!
+        let jsonData: Data = try await gitmojiUseCaseImpl.jsonData(from: gitmojiGroup)
+        XCTAssertFalse(jsonData.isEmpty)
+        
+        print(String(data: jsonData, encoding: .utf8))
+    }
+    
     func testCreateDefaultGitmojiGroupIfNeeded() async throws {
-        let isCreated: Bool = try await gitmojiUseCaseImpl.createDefaultGitmojiGroupIfNeeded(force: false)
-        XCTAssertTrue(isCreated)
-        let isCreatedAgain: Bool = try await gitmojiUseCaseImpl.createDefaultGitmojiGroupIfNeeded(force: false)
-        XCTAssertFalse(isCreatedAgain)
-        let isCreatedByForce: Bool = try await gitmojiUseCaseImpl.createDefaultGitmojiGroupIfNeeded(force: true)
-        XCTAssertTrue(isCreatedByForce)
+        let firstGitmojiGroup: GitmojiGroup? = try await gitmojiUseCaseImpl.createDefaultGitmojiGroupIfNeeded(force: false)
+        XCTAssertNotNil(firstGitmojiGroup)
+        let secondGitmojiGroup: GitmojiGroup?  = try await gitmojiUseCaseImpl.createDefaultGitmojiGroupIfNeeded(force: false)
+        XCTAssertNil(secondGitmojiGroup)
+        let thirdGitmojiGroup: GitmojiGroup? = try await gitmojiUseCaseImpl.createDefaultGitmojiGroupIfNeeded(force: true)
+        XCTAssertNil(thirdGitmojiGroup)
         
         let gitmojiGroups: [GitmojiGroup] = try await gitmojiUseCaseImpl.gitmojiGroups(fetchRequest: nil)
         XCTAssertTrue(gitmojiGroups.count == 2)

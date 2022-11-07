@@ -1,4 +1,5 @@
 import Foundation
+import CoreTransferable
 
 struct GitmojiJSON: Codable {
     struct Object: Codable {
@@ -11,4 +12,10 @@ struct GitmojiJSON: Codable {
     }
     
     let gitmojis: [Object]
+}
+
+extension GitmojiJSON: Transferable {
+    public static var transferRepresentation: some TransferRepresentation {
+        CodableRepresentation(contentType: .json)
+    }
 }

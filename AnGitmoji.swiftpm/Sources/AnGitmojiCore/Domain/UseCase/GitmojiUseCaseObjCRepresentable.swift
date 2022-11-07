@@ -7,9 +7,10 @@ import CoreData
     // MARK: - Others
     @objc(conditionSafeWithBlock:completionHandler:) func _conditionSafe(block: @Sendable @escaping () -> Void) async
     func refresh(object: NSManagedObject) async throws
+    func jsonData(from gitmojiGroup: GitmojiGroup) async throws -> Data
     
     // MARK: - Create
-    @discardableResult func createDefaultGitmojiGroupIfNeeded(force: Bool) async throws -> Bool
+    @discardableResult func createDefaultGitmojiGroupIfNeeded(force: Bool) async throws -> GitmojiGroup?
     func createGitmojiGroup(from url: URL, name: String) async throws -> GitmojiGroup
     func newGitmojiGroup() async throws -> GitmojiGroup
     @objc(newGitmojiTo:index:completionHandler:) func _newGitmoji(to gitmojiGroup: GitmojiGroup, index: Int) async throws -> Gitmoji
