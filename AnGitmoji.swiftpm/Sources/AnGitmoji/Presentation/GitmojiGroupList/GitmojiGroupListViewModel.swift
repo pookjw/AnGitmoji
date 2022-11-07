@@ -41,6 +41,10 @@ final class GitmojiGroupListViewModel: ObservableObject, @unchecked Sendable {
         }
         
         try await gitmojiUseCase.saveChanges()
+        
+        await MainActor.run { [weak self] in
+            self?.selectedGitmojiGroups = .init()
+        }
     }
     
     func move(of indexSet: IndexSet, to index: Int) async throws {
