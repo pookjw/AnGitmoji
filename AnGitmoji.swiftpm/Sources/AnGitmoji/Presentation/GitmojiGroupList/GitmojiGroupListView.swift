@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 import AnGitmojiCore
 
 struct GitmojiGroupListView: View {
@@ -10,9 +11,9 @@ struct GitmojiGroupListView: View {
         animation: .easeInOut
     ) private var fetchedGitmojiGroups: FetchedResults<GitmojiGroup>
     @State private var isEditing: Bool = false
+    @State private var isDropping: Bool = false
     @ObservedObject private var viewModel: GitmojiGroupListViewModel
     @State private var tasks: Set<Task<Void, Never>> = .init()
-    @State var shareURL: URL?
     
     init(selectedGitmojiGroups: Binding<Set<GitmojiGroup>>) {
         self.viewModel = .init(selectedGitmojiGroups: selectedGitmojiGroups)
@@ -58,6 +59,11 @@ struct GitmojiGroupListView: View {
                                 preview: SharePreview("Share", image: Image(systemName: "xmark"))
                             )
                         }
+//                        .onDrag {
+//                            gitmojiGroup.loadTransferable(type: <#T##T#>, completionHandler: <#T##(Result<T, Error>) -> Void#>)
+//                            let itemProvider: NSItemProvider = .init()
+//                            return itemProvider
+//                        }
                 }
                 .onDelete { indexSet in
                     indexSet.forEach { index in
@@ -80,7 +86,16 @@ struct GitmojiGroupListView: View {
                         }
                     })
                 }
-                //            .onDrop(of: <#T##[UTType]#>, isTargeted: <#T##Binding<Bool>?#>, perform: <#T##([NSItemProvider], CGPoint) -> Bool##([NSItemProvider], CGPoint) -> Bool##(_ providers: [NSItemProvider], _ location: CGPoint) -> Bool#>)
+                .onDrop(of: [.json], isTargeted: $isDropping) { itemProviders in
+                    tasks.insert(.detached { [viewModel] in
+                        do {
+                            try await viewModel.load(itemProviders: itemProviders)
+                        } catch {
+                            fatalError(error.localizedDescription)
+                        }
+                    })
+                    return true
+                }
             }
             
             EditableView(isEditing: $isEditing)

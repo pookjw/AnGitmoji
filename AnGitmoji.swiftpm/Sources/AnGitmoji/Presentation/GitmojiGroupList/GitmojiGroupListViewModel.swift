@@ -52,6 +52,29 @@ final class GitmojiGroupListViewModel: ObservableObject, @unchecked Sendable {
         fatalError("TODO")
     }
     
+    func load(itemProviders: [NSItemProvider]) async throws {
+        for itemProvider in itemProviders {
+            let gitmojiGroup: GitmojiGroup = try await withCheckedThrowingContinuation { continuation in
+                let _: Progress = itemProvider.loadTransferable(type: GitmojiGroup.self) { result in
+                    continuation.resume(with: result)
+                }
+            }
+            
+            let name: String
+            if let suggestedName: String = itemProvider.suggestedName {
+                name = suggestedName
+            } else {
+                name = "Gitmojis"
+            }
+            
+            await gitmojiUseCase.conditionSafe {
+                gitmojiGroup.name = name
+            }
+        }
+        
+        try await gitmojiUseCase.saveChanges()
+    }
+    
     func prepareEditAlert(gitmojiGroup: GitmojiGroup) async {
         editingGitmojiGroup = gitmojiGroup
         
