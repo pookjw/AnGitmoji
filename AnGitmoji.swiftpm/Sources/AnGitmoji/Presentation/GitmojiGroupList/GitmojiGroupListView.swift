@@ -90,7 +90,7 @@ struct GitmojiGroupListView: View {
             }
             
             Button {
-                tasks.insert(.detached {
+                tasks.insert(.detached { [viewModel] in
                     do {
                         try await viewModel.test_create()
                     } catch {
