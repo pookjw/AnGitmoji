@@ -45,7 +45,7 @@ public final class GitmojiGroup: NSManagedObject, @unchecked Sendable {
 extension GitmojiGroup: Transferable {
     public static var transferRepresentation: some TransferRepresentation {
         DataRepresentation(contentType: .json) { gitmojiGroup in
-            return try await gitmojiGroup.dataRepresentation
+            return try await gitmojiGroup.data
         } importing: { data in
             return try await create(from: data)
         }
@@ -58,7 +58,7 @@ extension GitmojiGroup: Transferable {
             let name: String = await gitmojiUseCase.conditionSafe {
                 return gitmojiGroup.name
             }
-            let data: Data = try await gitmojiGroup.dataRepresentation
+            let data: Data = try await gitmojiGroup.data
             let temporaryDirectory: URL = FileManager.default.temporaryDirectory
             let resultURL: URL = temporaryDirectory
                 .appending(component: name, directoryHint: .notDirectory)
@@ -73,7 +73,7 @@ extension GitmojiGroup: Transferable {
             let sentTransferredFile: SentTransferredFile = .init(resultURL, allowAccessingOriginalFile: true)
             return sentTransferredFile
         } importing: { receivedTransferredFile in
-            let data: Data = try Data(
+            let data: Data = try .init(
                 contentsOf: receivedTransferredFile.file,
                 options: [.uncached]
             )
@@ -86,7 +86,7 @@ extension GitmojiGroup: Transferable {
 }
 
 extension GitmojiGroup {
-    private var dataRepresentation: Data {
+    private var data: Data {
         get async throws {
             let gitmojiUseCase: GitmojiUseCase = DIService.gitmojiUseCase
             
