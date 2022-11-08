@@ -13,9 +13,3 @@ struct GitmojiJSON: Codable {
     
     let gitmojis: [Object]
 }
-
-extension GitmojiJSON: Transferable {
-    public static var transferRepresentation: some TransferRepresentation {
-        CodableRepresentation(contentType: .json)
-    }
-}
