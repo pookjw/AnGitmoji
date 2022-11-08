@@ -37,7 +37,8 @@ let package = Package(
             capabilities: [
                 .outgoingNetworkConnections()
             ],
-            appCategory: .utilities
+            appCategory: .utilities,
+            additionalInfoPlistContentFilePath: "Sources/AnGitmoji/Application/MoreInfo.plist"
         )
     ],
     targets: [
@@ -46,6 +47,9 @@ let package = Package(
             dependencies: [
                 "AnGitmojiObjC",
                 "AnGitmojiCore"
+            ],
+            exclude: [
+                "Application/MoreInfo.plist"
             ],
             resources: [
                 .process("Resources")
