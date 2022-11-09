@@ -1,10 +1,11 @@
 #import "GitmojiGroupsStatusMenuItem.h"
+#import "GitmojiGroupsStatusMenuItemModel.h"
 @import AnGitmojiCore;
 
 #if TARGET_OS_OSX || TARGET_OS_MACCATALYST
 
 @interface GitmojiGroupsStatusMenuItem ()
-@property (strong) id<GitmojiUseCase> gitmojiUseCase;
+@property (strong) GitmojiGroupsStatusMenuItemModel *model;
 @end
 
 @implementation GitmojiGroupsStatusMenuItem
@@ -12,7 +13,7 @@
 - (instancetype)init {
     if (self = [super init]) {
         [self setAttributes];
-        [self configureGitmojiUseCase];
+        [self configureModel];
     }
     
     return self;
@@ -22,9 +23,9 @@
     [self setSystemSymbolName:@"face.smiling" accessibilityDescription:nil];
 }
 
-- (void)configureGitmojiUseCase {
-    id<GitmojiUseCase> gitmojiUseCase = DIService.gitmojiUseCase;
-    self.gitmojiUseCase = gitmojiUseCase;
+- (void)configureModel {
+    GitmojiGroupsStatusMenuItemModel *model = [GitmojiGroupsStatusMenuItemModel new];
+    self.model = model;
 }
 
 @end

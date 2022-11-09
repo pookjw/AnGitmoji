@@ -1,7 +1,7 @@
 import CoreData
 
 public final class Gitmoji: NSManagedObject, @unchecked Sendable {
-    public static var fetchRequest: NSFetchRequest<Gitmoji> {
+    @objc(_fetchRequest) public static var fetchRequest: NSFetchRequest<Gitmoji> {
         return .init(entityName: "Gitmoji")
     }
     

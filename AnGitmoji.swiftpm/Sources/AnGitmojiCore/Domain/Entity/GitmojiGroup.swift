@@ -3,7 +3,7 @@ import CoreTransferable
 import UniformTypeIdentifiers
 
 public final class GitmojiGroup: NSManagedObject, @unchecked Sendable {
-    public static var fetchRequest: NSFetchRequest<GitmojiGroup> {
+    @objc(_fetchRequest) public static var fetchRequest: NSFetchRequest<GitmojiGroup> {
         return .init(entityName: "GitmojiGroup")
     }
     
