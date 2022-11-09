@@ -24,6 +24,9 @@ final class GitmojiGroupListViewModel: ObservableObject, @unchecked Sendable {
     }
     
     func remove(gitmojiGroup: GitmojiGroup) async throws {
+        await MainActor.run { [weak self] in
+            let _: GitmojiGroup? = self?.selectedGitmojiGroups.remove(gitmojiGroup)
+        }
         let gitmojiGroupWithBackgroundContext: GitmojiGroup = try await gitmojiUseCase.object(with: gitmojiGroup.objectID)
         try await gitmojiUseCase.remove(gitmojiGroup: gitmojiGroupWithBackgroundContext)
         try await gitmojiUseCase.saveChanges()
