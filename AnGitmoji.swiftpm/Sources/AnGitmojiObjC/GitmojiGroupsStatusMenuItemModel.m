@@ -80,7 +80,19 @@
 #pragma mark - NSFetchedResultsControllerDelegate
 
 - (void)controller:(NSFetchedResultsController *)controller didChangeContentWithDifference:(NSOrderedCollectionDifference<NSManagedObjectID *> *)diff {
-    NSLog(@"%@", diff);
+    // https://developer.apple.com/documentation/foundation/nsorderedcollectiondifference?language=objc
+    
+    NSLog(@"START");
+    
+    [diff.insertions enumerateObjectsUsingBlock:^(NSOrderedCollectionChange<NSManagedObjectID *> * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSLog(@"insertion: %@, %ld, %ld", obj.object, obj.index, obj.associatedIndex);
+    }];
+    
+    [diff.removals enumerateObjectsUsingBlock:^(NSOrderedCollectionChange<NSManagedObjectID *> * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+        NSLog(@"removal: %@, %ld, %ld", obj.object, obj.index, obj.associatedIndex);
+    }];
+    
+    NSLog(@"END");
 }
 
 @end
