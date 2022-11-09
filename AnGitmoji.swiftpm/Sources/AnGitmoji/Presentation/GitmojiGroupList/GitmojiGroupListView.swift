@@ -48,12 +48,6 @@ struct GitmojiGroupListView: View {
                             
                             Divider()
                             
-                            Button {
-                                fatalError("TODO")
-                            } label: {
-                                Label("Export", systemImage: "square.and.arrow.down")
-                            }
-                            
                             ShareLink(
                                 item: gitmojiGroup,
                                 preview: SharePreview("Share", image: Image(systemName: "xmark"))
