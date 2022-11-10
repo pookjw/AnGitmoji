@@ -139,6 +139,22 @@ actor GitmojiRepositoryImpl: GitmojiRepository {
                 }
             }
         }
+        
+        return results
+    }
+    
+    func gitmojis(fetchRequest: NSFetchRequest<Gitmoji>) async throws -> [Gitmoji] {
+        let results: [Gitmoji] = try await withCheckedThrowingContinuation { [context] continuation in
+            context.perform {
+                do {
+                    let results: [Gitmoji] = try context.fetch(fetchRequest)
+                    continuation.resume(with: .success(results))
+                } catch {
+                    continuation.resume(with: .failure(error))
+                }
+            }
+        }
+        
         return results
     }
     

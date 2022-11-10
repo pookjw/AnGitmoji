@@ -134,6 +134,14 @@ final class GitmojiRepositoryImplTests: XCTestCase, @unchecked Sendable {
         XCTAssertTrue(gitmojiGroups.contains(gitmojiGroup))
     }
     
+    func testGitmojis() async throws {
+        let gitmoji: Gitmoji = try await gitmojiRepositoryImpl.newGitmoji
+        try await gitmojiRepositoryImpl.saveChanges()
+        
+        let gitmojis: [Gitmoji] = try await gitmojiRepositoryImpl.gitmojis(fetchRequest: Gitmoji.fetchRequest)
+        XCTAssertTrue(gitmojis.contains(gitmoji))
+    }
+    
     func testObjectWithObjectID() async throws {
         let gitmojiGroup: GitmojiGroup = try await gitmojiRepositoryImpl.newGitmojiGroup
         try await gitmojiRepositoryImpl.saveChanges()

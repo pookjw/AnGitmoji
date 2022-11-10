@@ -148,6 +148,11 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
         return try await gitmojiRepository.gitmojiGroups(fetchRequest: fetchRequest)
     }
     
+    public func gitmojis(fetchRequest: NSFetchRequest<Gitmoji>?) async throws -> [Gitmoji] {
+        let fetchRequest: NSFetchRequest<Gitmoji> = fetchRequest ?? Gitmoji.fetchRequest
+        return try await gitmojiRepository.gitmojis(fetchRequest: fetchRequest)
+    }
+    
     public func gitmojiGroupsCount(fetchRequest: NSFetchRequest<GitmojiGroup>?) async throws -> Int {
         let fetchRequest: NSFetchRequest<GitmojiGroup> = fetchRequest ?? GitmojiGroup.fetchRequest
         fetchRequest.includesSubentities = true

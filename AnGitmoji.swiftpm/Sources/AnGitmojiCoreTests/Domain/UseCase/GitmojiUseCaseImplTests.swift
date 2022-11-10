@@ -221,6 +221,15 @@ final class GitmojiUseCaseImplTests: XCTestCase, @unchecked Sendable {
         XCTAssertTrue(gitmojiGroups.contains(gitmojiGroup))
     }
     
+    func testGitmojis() async throws {
+        let gitmojiGroup: GitmojiGroup = try await gitmojiUseCaseImpl.newGitmojiGroup
+        let gitmoji: Gitmoji = try await gitmojiUseCaseImpl.newGitmoji(to: gitmojiGroup, index: nil)
+        try await gitmojiUseCaseImpl.saveChanges()
+        
+        let gitmojis: [Gitmoji] = try await gitmojiUseCaseImpl.gitmojis(fetchRequest: nil)
+        XCTAssertTrue(gitmojis.contains(gitmoji))
+    }
+    
     func testObjectWithObjectID() async throws {
         let gitmojiGroup: GitmojiGroup = try await gitmojiUseCaseImpl.newGitmojiGroup
         try await gitmojiUseCaseImpl.saveChanges()
