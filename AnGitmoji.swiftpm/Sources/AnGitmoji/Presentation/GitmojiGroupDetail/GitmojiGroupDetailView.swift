@@ -3,7 +3,7 @@ import AnGitmojiCore
 
 struct GitmojiGroupDetailView: View {
     @FetchRequest(
-        sortDescriptors: [],
+        sortDescriptors: [.init(\.name, order: .forward)],
         // When change of selectedGitmojiGroup is detected, there's no predicate in short time.
         // During that time, this view will show all Gitmoji objects without filtering. Below code will prevent it.
         predicate: NSPredicate(value: false),
@@ -17,15 +17,15 @@ struct GitmojiGroupDetailView: View {
     }
     
     var body: some View {
-        Table(selection: $viewModel.selectedGitmojis, sortOrder: $viewModel.keyPathComparators) {
-            TableColumn("Emoji", value: \Gitmoji.emoji)
+        Table(selection: $viewModel.selectedGitmojis, sortOrder: $viewModel.sortDescriptors) {
             TableColumn("Name", value: \Gitmoji.name)
+            TableColumn("Emoji", value: \Gitmoji.emoji)
             TableColumn("Code", value: \Gitmoji.code)
             TableColumn("Description", value: \Gitmoji.detail) { gitmoji in
                 Text(gitmoji.detail)
                     .lineLimit(nil)
             }
-            TableColumn("Count", value: \Gitmoji.count, comparator: IntComparator()) { gitmoji in
+            TableColumn("Count", value: \Gitmoji.count) { gitmoji in
                 Text("\(gitmoji.count)")
             }
         } rows: {

@@ -5,9 +5,8 @@ import AnGitmojiCore
 
 actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
     @Published @MainActor var selectedGitmojis: Set<Gitmoji.ID> = .init()
-    @Published @MainActor var keyPathComparators: [KeyPathComparator<Gitmoji>] = [
-        // TODO: Need to save
-        .init(\.code, order: .forward)
+    @Published @MainActor var sortDescriptors: [SortDescriptor<Gitmoji>] = [
+        .init(\.name, order: .forward)
     ]
     @Published @MainActor var searchText: String = ""
     @Published @MainActor var isPresentedEditAlert: Bool = false
@@ -17,7 +16,6 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
     @Published @MainActor var editingGitmojiDetail: String = ""
     
     @Published @MainActor private(set) var gitmojis: [Gitmoji] = []
-    @Published @MainActor private(set) var sortDescriptors: [SortDescriptor<Gitmoji>] = []
     @Published @MainActor private(set) var nsPredicate: NSPredicate = .init(value: false)
     @Published @MainActor private(set) var selectedGitmojiGroupName: String = ""
     private var editingGitmoji: Gitmoji?
@@ -133,17 +131,6 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
     
     private nonisolated func bind() {
         Task { [weak self, gitmojiUseCase] in
-            // When sortOrders is updated, apply that changes to Data Source (gitmojis).
-            await self?.insert(task: .detached { [weak self] in
-                guard let keyPathComparatorsPublisher: Published<[KeyPathComparator<Gitmoji>]>.Publisher = await self?.$keyPathComparators else {
-                    return
-                }
-                
-                for await _ in keyPathComparatorsPublisher.values {
-                    await self?.updateSortDescriptors()
-                }
-            })
-            
             // When searchText is updated, apply that changes to Data Source (gitmojis).
             await self?.insert(task: .detached { [weak self] in
                 guard let searchTextPublisher: Published<String>.Publisher = await self?.$searchText else {
@@ -229,36 +216,6 @@ actor GitmojiGroupDetailViewModel: ObservableObject, @unchecked Sendable {
         
         await MainActor.run { [weak self] in
             self?.nsPredicate = predicate
-        }
-    }
-    
-    private func updateSortDescriptors() async {
-        var hasCodeSortDescriptor: Bool = false
-        var sortDescriptors: [SortDescriptor<Gitmoji>] = await keyPathComparators.compactMap { keyPathComparator in
-            // PartialKeyPath<Gitmoji> -> KeyPath<Gitmoji, V>
-            switch keyPathComparator.keyPath {
-            case \.emoji:
-                return .init(\.emoji, order: keyPathComparator.order)
-            case \.name:
-                return .init(\.name, order: keyPathComparator.order)
-            case \.code:
-                hasCodeSortDescriptor = true
-                return .init(\.code, order: keyPathComparator.order)
-            case \.detail:
-                return .init(\.detail, order: keyPathComparator.order)
-            case \.count:
-                return .init(\.count, order: keyPathComparator.order)
-            default:
-                return nil
-            }
-        }
-        
-        if !hasCodeSortDescriptor {
-            sortDescriptors.insert(.init(\.code, order: .reverse), at: 0)
-        }
-        
-        await MainActor.run { [weak self, sortDescriptors] in
-            self?.sortDescriptors = sortDescriptors
         }
     }
     
