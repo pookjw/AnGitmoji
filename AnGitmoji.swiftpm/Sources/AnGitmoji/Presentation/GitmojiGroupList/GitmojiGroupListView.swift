@@ -124,13 +124,14 @@ struct GitmojiGroupListView: View {
             } label: {
                 Label("Create a new Group", systemImage: "plus")
             }
-
+            
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 EditButton()
             }
             
+#if DEBUG
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     tasks.insert(.detached { [viewModel] in
@@ -141,6 +142,7 @@ struct GitmojiGroupListView: View {
                     Image(systemName: "ant")
                 }
             }
+#endif
             
             if isEditing {
                 ToolbarItem(placement: .navigationBarTrailing) {
