@@ -19,13 +19,14 @@
         [self configureQueue];
         [self configureGitmojiUseCase];
         
-        [self.gitmojiUseCase conditionSafeWithBlock:^{
-            [self configureContext];
-            [self configureGitmojiGroups];
-            [self configureGitmojis];
-        } completionHandler:^{
-            
-        }];
+        // conditionSafeWithBlock is not safe on Obj-C - asynchronous block is not available on Obj-C context.
+//        [self.gitmojiUseCase conditionSafeWithBlock:^{
+//            [self configureContext];
+//            [self configureGitmojiGroups];
+//            [self configureGitmojis];
+//        } completionHandler:^{
+//
+//        }];
     }
     
     return self;
@@ -127,27 +128,27 @@
 
 - (void)configureGitmojis {
 //    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
-//    
+//
 //    //
-//    
-//    
-//    
+//
+//
+//
 //    //
-//    
+//
 //    NSMapTable<GitmojiGroup *, NSOrderedCollectionDifference<Gitmoji *> *> *mapTable = [NSMapTable strongToStrongObjectsMapTable];
-//    
+//
 //    [gitmojiGroups enumerateObjectsUsingBlock:^(GitmojiGroup * _Nonnull gitmojiGroup, NSUInteger idx, BOOL * _Nonnull stop) {
 //        NSFetchRequest *fetchRequest = [Gitmoji _fetchRequest];
 //        fetchRequest.predicate = [NSPredicate predicateWithFormat:@"%K = %@" argumentArray:@[@"group", gitmojiGroup]];
 //        fetchRequest.sortDescriptors = @[
 //            [[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES]
 //        ];
-//        
+//
 //        [self.gitmojiUseCase gitmojisWithFetchRequest:fetchRequest completionHandler:^(NSArray<Gitmoji *> * _Nullable gitmojis, NSError * _Nullable error) {
 //            if (error) {
 //                assert(error);
 //            }
-//            
+//
 //            NSMutableArray<NSOrderedCollectionChange<Gitmoji *> *> *changes = [NSMutableArray new];
 //            [gitmojis enumerateObjectsUsingBlock:^(Gitmoji * _Nonnull gitmoji, NSUInteger idx, BOOL * _Nonnull stop) {
 //                [changes addObject:[NSOrderedCollectionChange changeWithObject:gitmoji
@@ -155,25 +156,25 @@
 //                                                                         index:idx
 //                                                               associatedIndex:idx]];
 //            }];
-//            
+//
 //            NSOrderedCollectionDifference<Gitmoji *> *diff = [[NSOrderedCollectionDifference alloc] initWithChanges:changes];
 //            [mapTable setObject:diff forKey:gitmojiGroup];
-//            
+//
 //            dispatch_semaphore_signal(semaphore);
 //        }];
-//        
+//
 //        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
 //    }];
-//    
+//
 //    //
-//    
+//
 //    [NSOperationQueue.mainQueue addOperationWithBlock:^{
 //        [NSNotificationCenter.defaultCenter postNotificationName:NSNotificationNameGitmojiGroupsStatusMenuItemModelDidChangeGitmojiGroup
 //                                                          object:self
 //                                                        userInfo:@{GitmojiGroupsStatusMenuItemModelDidChangeGitmojiGroupDifferenceMapItemKey: mapTable}];
 //        dispatch_semaphore_signal(semaphore);
 //    }];
-//    
+//
 //    dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
 }
 

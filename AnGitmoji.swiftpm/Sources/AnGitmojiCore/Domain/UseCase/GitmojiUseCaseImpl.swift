@@ -52,7 +52,8 @@ final class GitmojiUseCaseImpl: GitmojiUseCase, GitmojiUseCaseObjCRepresentable 
     }
     
     public func _conditionSafe(block: @Sendable @escaping () -> Void) async {
-        await conditionSafe(block: block)
+//        await conditionSafe(block: block)
+        fatalError("asynchronous block is not supported on Obj-C.")
     }
     
     public func refresh(object: NSManagedObject) async throws {
